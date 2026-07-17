@@ -6,30 +6,17 @@ import { Dashboard } from './components/Dashboard';
 
 function App() {
   const [started, setStarted] = useState(false);
-  const [activeView, setActiveView] = useState('dashboard');
 
   if (!started) {
     return <Welcome onContinue={() => setStarted(true)} />;
   }
 
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <Dashboard />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
     <div className="app">
-      <Sidebar
-        activeView={activeView}
-        onViewChange={setActiveView}
-      />
+      <Sidebar />
       <main className="main-content">
         <div className="view-container">
-          {renderView()}
+          <Dashboard />
         </div>
       </main>
     </div>
