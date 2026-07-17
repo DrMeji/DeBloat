@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import { Welcome } from './components/Welcome';
+import { Sidebar } from './components/Sidebar';
+import { Dashboard } from './components/Dashboard';
 
 function App() {
-  const [started, setStarted] = useState(false)
+  const [started, setStarted] = useState(false);
+  const [activeView, setActiveView] = useState('dashboard');
+
+  if (!started) {
+    return <Welcome onContinue={() => setStarted(true)} />;
+  }
+
+  const renderView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <Dashboard />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
-    <div className="welcome">
-      <div className="welcome-drag" />
-
-      <div className="welcome-content">
-        <div className="welcome-logo">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
+    <div className="app">
+      <Sidebar
+        activeView={activeView}
+        onViewChange={setActiveView}
+      />
+      <main className="main-content">
+        <div className="view-container">
+          {renderView()}
         </div>
-
-        <h1 className="welcome-title">DeBloat</h1>
-        <p className="welcome-subtitle">Advanced Windows optimization &amp; debloating utility</p>
-
-        {started && (
-          <p className="welcome-status">Let&apos;s build the next screen from here.</p>
-        )}
-      </div>
-
-      <div className="welcome-footer">
-        <button className="btn btn-primary welcome-continue" onClick={() => setStarted(true)}>
-          Continue
-        </button>
-      </div>
+      </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
