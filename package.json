@@ -51,7 +51,6 @@
       "dist-electron/**/*"
     ],
     "win": {
-      "icon": "public/icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
       "target": [
         "nsis"
