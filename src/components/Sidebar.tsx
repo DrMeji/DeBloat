@@ -21,8 +21,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
         <img src={logo} alt="DeBloat logo" className="sidebar-logo" />
       </div>
 
-      <div className="sidebar-spacer" />
-
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
           const isActive = activeView === item.id;
@@ -37,6 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
           );
         })}
       </nav>
+
+      <div className="sidebar-spacer" />
+
       <div className="sidebar-footer">
         <button className="nav-item nav-item-logout">
           <span>Logout</span>
