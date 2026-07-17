@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import { Welcome } from './components/Welcome';
 import { Dashboard } from './components/Dashboard';
+import { Sidebar } from './components/Sidebar';
 
 function App() {
   const [started, setStarted] = useState(false);
@@ -12,7 +13,7 @@ function App() {
 
   return (
     <div className="app">
-      {/* The Sidebar component has been removed to provide a blank slate */}
+      <Sidebar />
       <main className="main-content">
         <div className="view-container">
           <Dashboard />
