@@ -2,7 +2,7 @@ export type Tweak = {
   id: string;
   name: string;
   description: string;
-  category: 'Apps' | 'Services' | 'Performance' | 'Privacy' | 'Scheduled Tasks';
+  category: 'Apps' | 'Services' | 'Performance' | 'Privacy' | 'Scheduled Tasks' | 'Developer Tools';
   risk: 'safe' | 'moderate' | 'aggressive';
   recommended: boolean;
   type: 'appx' | 'service' | 'registry' | 'task' | 'command';

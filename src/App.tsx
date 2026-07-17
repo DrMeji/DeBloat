@@ -3,6 +3,7 @@ import './App.css';
 import { Welcome } from './components/Welcome';
 import { Sidebar } from './components/Sidebar';
 import GamerView from './views/GamerView';
+import DeveloperView from './views/DeveloperView';
 
 function App() {
   const [started, setStarted] = useState(false);
@@ -16,6 +17,8 @@ function App() {
     switch (activeView) {
       case 'gamer':
         return <GamerView />;
+      case 'developer':
+        return <DeveloperView />;
       // Other views like Developer, Ultimate, etc. can be added here later
       default:
         return <GamerView />;
