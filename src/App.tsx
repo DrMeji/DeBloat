@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import './App.css';
 import { Welcome } from './components/Welcome';
-import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 
 function App() {
@@ -13,7 +12,7 @@ function App() {
 
   return (
     <div className="app">
-      <Sidebar />
+      {/* The Sidebar component has been removed to provide a blank slate */}
       <main className="main-content">
         <div className="view-container">
           <Dashboard />
