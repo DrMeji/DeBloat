@@ -42,9 +42,9 @@
   height: 96px;
   margin-bottom: 1rem;
   border-radius: 24px;
-  color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .welcome-title {
@@ -137,12 +137,12 @@
 }
 
 .btn-primary {
-  background-color: var(--accent-primary);
+  background-color: #3b82f6;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #4f46e5;
+  background-color: #2563eb;
 }
 
 .btn-secondary {

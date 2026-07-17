@@ -17,7 +17,6 @@ export const Welcome: React.FC<WelcomeProps> = ({ onContinue }) => {
         </div>
 
         <h1 className="welcome-title">DeBloat</h1>
-        <p className="welcome-subtitle">Advanced Windows optimization &amp; debloating utility</p>
       </div>
 
       <div className="welcome-footer">
