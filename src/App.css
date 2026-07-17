@@ -24,17 +24,9 @@
   gap: 0.5rem;
 }
 
-.welcome-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
+.welcome-icon {
+  color: #6b7280; /* A simple gray color */
   margin-bottom: 1rem;
-  border-radius: 24px;
-  color: var(--text-secondary);
-  background: #000000;
-  border: none;
 }
 
 .welcome-title {
