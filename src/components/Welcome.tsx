@@ -7,7 +7,6 @@ interface WelcomeProps {
 export const Welcome: React.FC<WelcomeProps> = ({ onContinue }) => {
   return (
     <div className="welcome">
-      <div className="welcome-drag" />
 
       <div className="welcome-content">
         <div className="welcome-logo">

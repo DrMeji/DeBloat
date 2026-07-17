@@ -17,16 +17,6 @@
   padding: 2rem;
 }
 
-/* Draggable region for the frameless window */
-.welcome-drag {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  -webkit-app-region: drag;
-}
-
 .welcome-content {
   display: flex;
   flex-direction: column;
@@ -94,7 +84,7 @@
 
 .view-container {
   flex: 1;
-  padding: 1.5rem;
+  padding: 0;
   overflow-y: auto;
   background-color: var(--bg-primary);
 }
