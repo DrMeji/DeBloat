@@ -1,78 +1,86 @@
-/* Let the category pill wrap gracefully when there are many categories */
-.apps-category-tabs {
-  flex-wrap: wrap;
-  max-width: 100%;
+.apps-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  padding: 2rem;
 }
 
-.apps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 10px;
-  padding-bottom: 1rem;
+.apps-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #2a2a2a;
 }
 
-.app-card {
+.apps-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.apps-header p {
+  font-size: 1rem;
+  color: #888;
+}
+
+.apps-list-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.app-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background-color: #0f0f0f;
-  border: 1px solid #222;
-  border-radius: 10px;
-  padding: 9px 12px;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #1a1a1a;
 }
 
-.app-card:hover {
-  background-color: #151515;
-  border-color: #333;
-}
-
-.app-card.selected {
-  border-color: #e5484d;
-  background-color: rgba(229, 72, 77, 0.08);
-}
-
-.app-avatar {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  border-radius: 7px;
-  background-color: #1c1c1c;
-  border: 1px solid #2a2a2a;
+.app-icon-wrapper {
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #d0d0d0;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 12px;
+  color: #ccc;
+}
+
+.app-info {
+  flex: 1;
 }
 
 .app-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.app-description {
+  font-size: 0.875rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+.app-actions {
+  margin-left: auto;
+}
+
+.app-action-btn {
+  background-color: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  color: #aaa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
   font-weight: 500;
-  color: #e8e8e8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: all 0.2s ease;
 }
 
-.app-dot {
-  width: 8px;
-  height: 8px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background-color: #333;
-  transition: background-color 0.15s ease;
-}
-
-.app-card.selected .app-dot {
-  background-color: #e5484d;
-}
-
-.app-card.installed .app-dot {
-  background-color: #4ade80;
+.app-action-btn:hover {
+  background-color: #2a2a2a;
+  color: #fff;
 }
