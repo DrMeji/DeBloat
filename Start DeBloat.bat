@@ -1,9 +1,18 @@
 @echo off
 title DeBloat - Dev Launcher
+
+REM --- Self-elevate to Administrator so tweaks can actually apply ---
+net session >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo Requesting Administrator privileges...
+    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    exit /b
+)
+
 cd /d "%~dp0"
 
 echo ============================================
-echo    Starting DeBloat live window...
+echo    Starting DeBloat live window (Admin)...
 echo ============================================
 echo.
 echo Keep THIS window open while you work.

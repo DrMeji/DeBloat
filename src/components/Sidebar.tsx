@@ -5,16 +5,18 @@ import logo from '../assets/logo.png';
 interface SidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  onLogout: () => void;
 }
 
 const menuItems = [
-  { id: 'gamer', name: 'Gamer' },
-  { id: 'developer', name: 'Developer' },
-  { id: 'ultimate', name: 'Ultimate' },
-  { id: 'settings', name: 'Settings' },
+  { id: 'gamer', name: 'Gamer', disabled: false },
+  { id: 'developer', name: 'Developer', disabled: false },
+  { id: 'apps', name: 'Apps', disabled: false },
+  { id: 'ultimate', name: 'Ultimate', disabled: false },
+  { id: 'settings', name: 'Settings', disabled: true },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -27,8 +29,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
           return (
             <button
               key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => onViewChange(item.id)}
+              className={`nav-item ${isActive ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
+              onClick={() => !item.disabled && onViewChange(item.id)}
+              disabled={item.disabled}
             >
               <span>{item.name}</span>
             </button>
@@ -36,11 +39,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
         })}
       </nav>
 
-      <div className="sidebar-spacer" />
-
       <div className="sidebar-footer">
-        <button className="nav-item nav-item-logout">
-          <span>Logout</span>
+        <button className="nav-item nav-item-logout" onClick={onLogout}>
+          <span>Log Out</span>
         </button>
       </div>
     </div>

@@ -231,7 +231,7 @@ export const developerTweaks: Tweak[] = [
   },
   {
     id: 'dev-disable-consumer-features',
-    name: 'Stop Auto-Installed Promo Apps',
+    name: 'Stop Auto Installed Promo Apps',
     description: 'Blocks Windows from silently installing suggested/sponsored apps (e.g., Candy Crush).',
     category: 'Privacy',
     risk: 'safe',

@@ -1,0 +1,121 @@
+.ultimate-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 3rem 2rem;
+  background-color: #000;
+}
+
+.ultimate-warning-card {
+  max-width: 620px;
+  width: 100%;
+  background-color: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  padding: 2.5rem 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(229, 72, 77, 0.15);
+}
+
+.ultimate-warning-icon {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background-color: rgba(229, 72, 77, 0.12);
+  color: #e5484d;
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 68px;
+  border: 1px solid rgba(229, 72, 77, 0.4);
+}
+
+.ultimate-warning-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+
+.ultimate-warning-lead {
+  color: #b5b5b5;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 auto 1.5rem;
+  max-width: 90%;
+}
+
+.ultimate-warning-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ultimate-warning-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: #ccc;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ultimate-warning-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0.25rem;
+  color: #e5484d;
+  font-weight: 700;
+}
+
+.ultimate-warning-list strong {
+  color: #fff;
+}
+
+.ultimate-warning-note {
+  color: #7d7d7d;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0 auto 2rem;
+  max-width: 92%;
+}
+
+.ultimate-warning-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.ultimate-btn-cancel,
+.ultimate-btn-continue {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ultimate-btn-cancel {
+  background-color: #1f1f1f;
+  color: #ccc;
+}
+
+.ultimate-btn-cancel:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.ultimate-btn-continue {
+  background-color: #e5484d;
+  color: #fff;
+}
+
+.ultimate-btn-continue:hover {
+  background-color: #ff5c60;
+}

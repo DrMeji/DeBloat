@@ -1,64 +1,111 @@
 .gamer-view {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
   background-color: #000;
   color: #fff;
-  padding: 2rem;
-  padding-bottom: 80px; /* Space for the footer */
+  padding: 0 2rem 2rem;
+}
+
+.gamer-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #000;
+  padding-top: 2rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .gamer-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #2a2a2a;
+  flex-wrap: wrap;
 }
 
-.preset-btn {
-  background-color: #1f1f1f;
-  border: 1px solid #2a2a2a;
-  color: #aaa;
+/* Left pill: category tabs */
+.category-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.category-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: #8a8a8a;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
   transition: all 0.2s ease;
 }
 
-.preset-btn:hover {
-  background-color: #2a2a2a;
+.category-tab:hover {
   color: #fff;
+}
+
+.category-tab.active {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Preset buttons live inside the right-hand pill */
+.preset-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.preset-tab {
+  background-color: transparent;
+  border: none;
+  color: #8a8a8a;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.preset-tab:hover {
+  color: #fff;
+}
+
+.preset-tab.active {
+  background-color: #fff;
+  color: #000;
+}
+
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px 4px 4px 0.5rem;
+}
+
+.selected-count {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 1ch;
+  text-align: center;
 }
 
 .tweaks-container {
   flex: 1;
-  overflow-y: auto;
-}
-
-.category-section {
-  margin-bottom: 1.5rem;
-}
-
-.category-header {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #ccc;
-}
-
-.category-header .chevron {
-  font-size: 1.5rem;
-  transition: transform 0.2s ease-in-out;
-}
-
-.category-header .chevron.expanded {
-  transform: rotate(90deg);
 }
 
 .tweak-item {
@@ -105,6 +152,7 @@
 }
 .tweak-status.applied { color: #4ade80; }
 .tweak-status.failed { color: #f87171; }
+.tweak-status.working { color: #8a8a8a; }
 
 /* Custom Toggle Switch */
 .toggle-switch {
@@ -152,35 +200,11 @@ input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
-/* Sticky Footer */
-.gamer-footer {
-  position: fixed;
-  bottom: 0;
-  left: 280px; /* Sidebar width */
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: #111;
-  border-top: 1px solid #2a2a2a;
-}
-
-.footer-info {
-  color: #aaa;
-  font-weight: 500;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 1rem;
-}
-
 .apply-btn, .undo-btn {
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -3,15 +3,23 @@ import { developerTweaks } from '../data/developerTweaks';
 import type { Tweak } from '../data/gamerTweaks';
 import './GamerView.css';
 
-type TweakStatus = 'applied' | 'failed' | 'pending';
+type TweakStatus = 'applied' | 'failed' | 'working' | 'pending';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const electronAPI = (window as any).electronAPI;
 
 const DeveloperView: React.FC = () => {
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
   const [tweakStatuses, setTweakStatuses] = useState<Record<string, TweakStatus>>({});
   const [lastAppliedTweaks, setLastAppliedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   const categoryOrder = ['Apps', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
+  const categoryLabels: Record<string, string> = {
+    'Scheduled Tasks': 'S Tasks',
+    'Developer Tools': 'D Tools',
+  };
   const [activeCategory, setActiveCategory] = useState<string>('Apps');
 
   const groupedTweaks = useMemo(() => {
@@ -45,17 +53,39 @@ const DeveloperView: React.FC = () => {
     setActivePreset('reset');
   };
 
-  const handleApplyChanges = () => {
-    console.log('Applying tweaks:', selectedTweaks);
-    const newStatuses: Record<string, TweakStatus> = {};
-    // Simulate applying tweaks (in a real scenario, this would be an async IPC call)
-    selectedTweaks.forEach(id => {
-      // Simulate some failing for demonstration
-      newStatuses[id] = Math.random() > 0.2 ? 'applied' : 'failed';
+  const handleApplyChanges = async () => {
+    const ids = [...selectedTweaks];
+    if (ids.length === 0) return;
+    const toApply = developerTweaks.filter(t => ids.includes(t.id));
+    setLastAppliedTweaks(ids);
+    setIsApplying(true);
+    setTweakStatuses(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = 'working'; });
+      return next;
     });
-    setTweakStatuses(prev => ({ ...prev, ...newStatuses }));
-    setLastAppliedTweaks(selectedTweaks);
-    setSelectedTweaks([]);
+
+    try {
+      if (electronAPI?.applyTweaks) {
+        const results = await electronAPI.applyTweaks(toApply, 'apply');
+        setTweakStatuses(prev => {
+          const next = { ...prev };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          results.forEach((r: any) => { next[r.id] = r.success ? 'applied' : 'failed'; });
+          return next;
+        });
+      } else {
+        await new Promise(res => setTimeout(res, 600));
+        setTweakStatuses(prev => {
+          const next = { ...prev };
+          ids.forEach(id => { next[id] = 'applied'; });
+          return next;
+        });
+      }
+    } finally {
+      setIsApplying(false);
+      setSelectedTweaks([]);
+    }
   };
 
   const handleUndoLast = () => {
@@ -83,7 +113,10 @@ const DeveloperView: React.FC = () => {
     return '#888';
   };
 
-  const activeTweaks = groupedTweaks[activeCategory] || [];
+  const riskOrder: Record<Tweak['risk'], number> = { safe: 0, moderate: 1, aggressive: 2 };
+  const activeTweaks = [...(groupedTweaks[activeCategory] || [])].sort(
+    (a, b) => riskOrder[a.risk] - riskOrder[b.risk]
+  );
 
   return (
     <div className="gamer-view">
@@ -96,7 +129,7 @@ const DeveloperView: React.FC = () => {
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
                 onClick={() => setActiveCategory(category)}
               >
-                {category}
+                {categoryLabels[category] || category}
               </button>
             ))}
           </nav>
@@ -123,8 +156,8 @@ const DeveloperView: React.FC = () => {
               </button>
             </div>
             <span className="selected-count">{selectedTweaks.length}</span>
-            <button className="apply-btn" onClick={handleApplyChanges} disabled={selectedTweaks.length === 0}>
-              Apply Changes
+            <button className="apply-btn" onClick={handleApplyChanges} disabled={selectedTweaks.length === 0 || isApplying}>
+              {isApplying ? 'Applying…' : 'Apply Changes'}
             </button>
           </div>
         </header>
@@ -143,7 +176,7 @@ const DeveloperView: React.FC = () => {
               </span>
               {tweakStatuses[tweak.id] && (
                 <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
-                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : '✗'}
+                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : tweakStatuses[tweak.id] === 'failed' ? '✗' : '…'}
                 </span>
               )}
               <label className="toggle-switch">

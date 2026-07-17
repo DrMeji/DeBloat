@@ -2,7 +2,7 @@ export type Tweak = {
   id: string;
   name: string;
   description: string;
-  category: 'Apps' | 'Services' | 'Performance' | 'Privacy' | 'Scheduled Tasks' | 'Developer Tools';
+  category: 'Apps' | 'Services' | 'Performance' | 'Privacy' | 'Scheduled Tasks' | 'Developer Tools' | 'Security';
   risk: 'safe' | 'moderate' | 'aggressive';
   recommended: boolean;
   type: 'appx' | 'service' | 'registry' | 'task' | 'command';
@@ -357,7 +357,7 @@ export const gamerTweaks: Tweak[] = [
   {
     id: 'remove-dev-home',
     name: 'Remove Dev Home',
-    description: 'Removes the Windows Dev Home app (for developers — not needed on a gaming PC).',
+    description: 'Removes the Windows Dev Home app (for developers, not needed on a gaming PC).',
     category: 'Apps',
     risk: 'safe',
     recommended: true,
@@ -527,7 +527,7 @@ export const gamerTweaks: Tweak[] = [
   },
   {
     id: 'disable-edge-update',
-    name: 'Disable Edge Auto-Update',
+    name: 'Disable Edge Auto Update',
     description: 'Stops Microsoft Edge from auto-updating in the background. Edge still works.',
     category: 'Services',
     risk: 'moderate',
@@ -663,7 +663,7 @@ export const gamerTweaks: Tweak[] = [
   {
     id: 'disable-power-throttling',
     name: 'Disable Power Throttling',
-    description: 'Stops Windows from throttling apps to save power — keeps the CPU at full speed.',
+    description: 'Stops Windows from throttling apps to save power. Keeps the CPU at full speed.',
     category: 'Performance',
     risk: 'safe',
     recommended: true,
@@ -674,7 +674,7 @@ export const gamerTweaks: Tweak[] = [
   },
   {
     id: 'enable-hags',
-    name: 'Enable Hardware-Accelerated GPU Scheduling',
+    name: 'Enable Hardware Accelerated GPU Scheduling',
     description: 'Turns on HAGS to reduce input latency on modern GPUs. Requires a reboot.',
     category: 'Performance',
     risk: 'safe',
@@ -781,7 +781,7 @@ export const gamerTweaks: Tweak[] = [
   },
   {
     id: 'disable-lastaccess',
-    name: 'Disable NTFS Last-Access Writes',
+    name: 'Disable NTFS Last Access Writes',
     description: 'Stops the disk write that updates a file every time it is read.',
     category: 'Performance',
     risk: 'safe',
@@ -804,7 +804,7 @@ export const gamerTweaks: Tweak[] = [
   {
     id: 'disable-spectre-meltdown',
     name: 'Disable Spectre & Meltdown Mitigations',
-    description: 'Disables CPU security mitigations for a performance boost. Increases security risk — off by default.',
+    description: 'Disables CPU security mitigations for a performance boost. Increases security risk, off by default.',
     category: 'Performance',
     risk: 'aggressive',
     recommended: false,
@@ -855,7 +855,7 @@ export const gamerTweaks: Tweak[] = [
   },
   {
     id: 'disable-consumer-features',
-    name: 'Stop Auto-Installed Promo Apps',
+    name: 'Stop Auto Installed Promo Apps',
     description: 'Blocks Windows from silently installing suggested/sponsored apps (Candy Crush, etc.).',
     category: 'Privacy',
     risk: 'safe',

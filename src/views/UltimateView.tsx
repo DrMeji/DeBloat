@@ -2,14 +2,23 @@ import React, { useState, useMemo } from 'react';
 import { ultimateTweaks } from '../data/ultimateTweaks';
 import type { Tweak } from '../data/gamerTweaks';
 import './GamerView.css';
+import './UltimateView.css';
 
-type TweakStatus = 'applied' | 'failed' | 'pending';
+type TweakStatus = 'applied' | 'failed' | 'working' | 'pending';
 
-const UltimateView: React.FC = () => {
+interface UltimateViewProps {
+  onCancel?: () => void;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const electronAPI = (window as any).electronAPI;
+
+const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
+  const [acknowledged, setAcknowledged] = useState(false);
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
   const [tweakStatuses, setTweakStatuses] = useState<Record<string, TweakStatus>>({});
-  const [lastAppliedTweaks, setLastAppliedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   const categoryOrder = ['Performance', 'Services', 'Security'];
   const [activeCategory, setActiveCategory] = useState<string>('Performance');
@@ -45,15 +54,38 @@ const UltimateView: React.FC = () => {
     setActivePreset('reset');
   };
 
-  const handleApplyChanges = () => {
-    console.log('Applying ULTIMATE tweaks:', selectedTweaks);
-    const newStatuses: Record<string, TweakStatus> = {};
-    selectedTweaks.forEach(id => {
-      newStatuses[id] = Math.random() > 0.2 ? 'applied' : 'failed';
+  const handleApplyChanges = async () => {
+    const ids = [...selectedTweaks];
+    if (ids.length === 0) return;
+    const toApply = ultimateTweaks.filter(t => ids.includes(t.id));
+    setIsApplying(true);
+    setTweakStatuses(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = 'working'; });
+      return next;
     });
-    setTweakStatuses(prev => ({ ...prev, ...newStatuses }));
-    setLastAppliedTweaks(selectedTweaks);
-    setSelectedTweaks([]);
+
+    try {
+      if (electronAPI?.applyTweaks) {
+        const results = await electronAPI.applyTweaks(toApply, 'apply');
+        setTweakStatuses(prev => {
+          const next = { ...prev };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          results.forEach((r: any) => { next[r.id] = r.success ? 'applied' : 'failed'; });
+          return next;
+        });
+      } else {
+        await new Promise(res => setTimeout(res, 600));
+        setTweakStatuses(prev => {
+          const next = { ...prev };
+          ids.forEach(id => { next[id] = 'applied'; });
+          return next;
+        });
+      }
+    } finally {
+      setIsApplying(false);
+      setSelectedTweaks([]);
+    }
   };
 
   const getRiskColor = (risk: Tweak['risk']) => {
@@ -67,6 +99,41 @@ const UltimateView: React.FC = () => {
   const activeTweaks = [...(groupedTweaks[activeCategory] || [])].sort(
     (a, b) => riskOrder[a.risk] - riskOrder[b.risk]
   );
+
+  if (!acknowledged) {
+    return (
+      <div className="ultimate-warning">
+        <div className="ultimate-warning-card">
+          <div className="ultimate-warning-icon">!</div>
+          <h1 className="ultimate-warning-title">Proceed with Caution</h1>
+          <p className="ultimate-warning-lead">
+            The Ultimate profile includes the most aggressive changes available. These options are
+            powerful enough that they can leave your PC less secure or less stable.
+          </p>
+          <ul className="ultimate-warning-list">
+            <li>Can <strong>disable Microsoft Defender</strong>, leaving no built-in antivirus.</li>
+            <li>Can <strong>turn off SmartScreen</strong>, so downloaded files run without warnings.</li>
+            <li>Can <strong>disable CPU security mitigations</strong> for extra performance.</li>
+            <li>Some changes require a reboot and may affect system stability.</li>
+          </ul>
+          <p className="ultimate-warning-note">
+            Nothing is applied automatically. Every option starts off, and the danger items are
+            excluded from the Recommended preset. You are in control of what runs.
+          </p>
+          <div className="ultimate-warning-actions">
+            {onCancel && (
+              <button className="ultimate-btn-cancel" onClick={onCancel}>
+                Go Back
+              </button>
+            )}
+            <button className="ultimate-btn-continue" onClick={() => setAcknowledged(true)}>
+              I Understand, Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="gamer-view">
@@ -106,8 +173,8 @@ const UltimateView: React.FC = () => {
               </button>
             </div>
             <span className="selected-count">{selectedTweaks.length}</span>
-            <button className="apply-btn" onClick={handleApplyChanges} disabled={selectedTweaks.length === 0}>
-              Apply Changes
+            <button className="apply-btn" onClick={handleApplyChanges} disabled={selectedTweaks.length === 0 || isApplying}>
+              {isApplying ? 'Applying…' : 'Apply Changes'}
             </button>
           </div>
         </header>
@@ -126,7 +193,7 @@ const UltimateView: React.FC = () => {
               </span>
               {tweakStatuses[tweak.id] && (
                 <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
-                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : '✗'}
+                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : tweakStatuses[tweak.id] === 'failed' ? '✗' : '…'}
                 </span>
               )}
               <label className="toggle-switch">
