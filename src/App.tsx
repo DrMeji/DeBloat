@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar';
 
 function App() {
   const [started, setStarted] = useState(false);
+  const [activeView, setActiveView] = useState('gamer');
 
   if (!started) {
     return <Welcome onContinue={() => setStarted(true)} />;
@@ -13,7 +14,7 @@ function App() {
 
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} />
       <main className="main-content">
         <div className="view-container">
           <Dashboard />
