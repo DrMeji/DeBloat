@@ -12,8 +12,18 @@
 }
 
 .sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid #2a2a2a;
+  padding: 80px 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-logo {
+  height: 75px;
+  width: auto;
+  max-width: 180px;
+  display: block;
+  object-fit: contain;
 }
 
 .logo {

@@ -1,5 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
+import logo from '../assets/logo.png';
 
 interface SidebarProps {
   // Props removed as they are no longer needed
@@ -8,7 +9,9 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = () => {
   return (
     <div className="sidebar">
-      {/* All content removed to create a blank slate */}
+      <div className="sidebar-header">
+        <img src={logo} alt="DeBloat logo" className="sidebar-logo" />
+      </div>
     </div>
   );
 };
