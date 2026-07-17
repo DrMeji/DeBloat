@@ -1,13 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
 import logo from '../assets/logo.png';
-import {
-  Gamepad2,
-  Code,
-  Zap,
-  Settings,
-  LogOut
-} from 'lucide-react';
 
 interface SidebarProps {
   activeView: string;
@@ -15,10 +8,10 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { id: 'gamer', name: 'Gamer', icon: Gamepad2 },
-  { id: 'developer', name: 'Developer', icon: Code },
-  { id: 'ultimate', name: 'Ultimate', icon: Zap },
-  { id: 'settings', name: 'Settings', icon: Settings },
+  { id: 'gamer', name: 'Gamer' },
+  { id: 'developer', name: 'Developer' },
+  { id: 'ultimate', name: 'Ultimate' },
+  { id: 'settings', name: 'Settings' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
@@ -27,9 +20,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
       <div className="sidebar-header">
         <img src={logo} alt="DeBloat logo" className="sidebar-logo" />
       </div>
+
+      <div className="sidebar-spacer" />
+
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
-          const Icon = item.icon;
           const isActive = activeView === item.id;
           return (
             <button
@@ -37,7 +32,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
               className={`nav-item ${isActive ? 'active' : ''}`}
               onClick={() => onViewChange(item.id)}
             >
-              <Icon size={20} />
               <span>{item.name}</span>
             </button>
           );
@@ -45,7 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
       </nav>
       <div className="sidebar-footer">
         <button className="nav-item nav-item-logout">
-          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>
