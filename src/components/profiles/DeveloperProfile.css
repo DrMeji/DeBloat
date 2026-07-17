@@ -1,0 +1,32 @@
+.developer-profile {
+  padding: 24px;
+}
+
+.profile-icon.developer {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.developer-profile .stat-value {
+  color: #3b82f6;
+}
+
+.optimization-card.enabled .opt-icon {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.optimization-card.enabled {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+}
+
+.toggle input:checked + .slider {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+}
+
+.btn-primary.developer-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
