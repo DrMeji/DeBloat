@@ -192,17 +192,26 @@ function buildServiceCommand(target: string, val: Record<string, unknown>): stri
   const names = target.split(',').map(s => s.trim()).filter(Boolean);
   const parts: string[] = [];
   for (const name of names) {
-    parts.push(`Set-Service -Name '${name}' -StartupType ${startup} -ErrorAction SilentlyContinue`);
+    // Only act if the service actually exists on this system. A service that
+    // isn't installed (e.g. NVIDIA telemetry on a machine with no NVIDIA GPU)
+    // is treated as "nothing to do" rather than a failure.
+    let inner = `Set-Service -Name '${name}' -StartupType ${startup} -ErrorAction SilentlyContinue`;
     if (val.startup === 'disabled') {
-      parts.push(`Stop-Service -Name '${name}' -Force -ErrorAction SilentlyContinue`);
+      inner += `; Stop-Service -Name '${name}' -Force -ErrorAction SilentlyContinue`;
     }
+    parts.push(`if (Get-Service -Name '${name}' -ErrorAction SilentlyContinue) { ${inner} }`);
   }
   return parts.join('; ');
 }
 
 function buildTaskCommand(target: string, action: string): string {
-  const flag = action === 'enable' ? '/ENABLE' : '/DISABLE';
-  return `schtasks /Change /TN "${target}" ${flag}`;
+  // Split the full task path into TaskPath + TaskName, then use the scheduler
+  // cmdlets so a missing task is a no-op (success) instead of a hard error.
+  const idx = target.lastIndexOf('\\');
+  const taskPath = idx >= 0 ? target.slice(0, idx + 1) : '\\';
+  const taskName = idx >= 0 ? target.slice(idx + 1) : target;
+  const verb = action === 'enable' ? 'Enable-ScheduledTask' : 'Disable-ScheduledTask';
+  return `$t = Get-ScheduledTask -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue; if ($t) { ${verb} -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue | Out-Null }`;
 }
 
 function buildAppxRemoveCommand(target: string, permanent?: boolean): string {
@@ -265,8 +274,10 @@ function runPowershell(command: string): Promise<{ success: boolean; error?: str
       'powershell.exe',
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
       { windowsHide: true, timeout: 300000, maxBuffer: 1024 * 1024 * 10 },
-      (error: Error | null, _stdout: string, stderr: string) => {
-        if (error) {
+      (error: (Error & { code?: number }) | null, _stdout: string, stderr: string) => {
+        // Exit code 3010 means "success, reboot required" (common for DISM /
+        // feature changes) and should be treated as success.
+        if (error && error.code !== 3010) {
           resolve({ success: false, error: (stderr || error.message || '').trim().slice(0, 500) });
         } else {
           resolve({ success: true });

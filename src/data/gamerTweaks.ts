@@ -398,8 +398,8 @@ export const gamerTweaks: Tweak[] = [
     risk: 'moderate',
     recommended: false,
     type: 'command',
-    target: 'winget uninstall Microsoft.OneDrive --silent',
-    undo: 'winget install Microsoft.OneDrive --silent',
+    target: "Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue; $s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -ArgumentList '/uninstall' -Wait }",
+    undo: "$s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -Wait }",
   },
 
   // ============================================================
@@ -798,8 +798,8 @@ export const gamerTweaks: Tweak[] = [
     risk: 'aggressive',
     recommended: false,
     type: 'command',
-    target: 'Disable-MMAgent -MemoryCompression',
-    undo: 'Enable-MMAgent -MemoryCompression',
+    target: 'try { Disable-MMAgent -MemoryCompression -ErrorAction Stop } catch { }',
+    undo: 'try { Enable-MMAgent -MemoryCompression -ErrorAction Stop } catch { }',
   },
   {
     id: 'disable-spectre-meltdown',

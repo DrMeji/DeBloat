@@ -72,8 +72,8 @@ export const developerTweaks: Tweak[] = [
     risk: 'moderate',
     recommended: false,
     type: 'command',
-    target: 'winget uninstall Microsoft.OneDrive --silent',
-    undo: 'winget install Microsoft.OneDrive --silent',
+    target: "Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue; $s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -ArgumentList '/uninstall' -Wait }",
+    undo: "$s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -Wait }",
   },
 
   // ============================================================

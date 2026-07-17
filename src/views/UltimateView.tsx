@@ -20,8 +20,13 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  const categoryOrder = ['Performance', 'Services', 'Security'];
-  const [activeCategory, setActiveCategory] = useState<string>('Performance');
+  const preferredOrder = ['Apps', 'Security', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
+  const categoryOrder = preferredOrder.filter(c => ultimateTweaks.some(t => t.category === c));
+  const categoryLabels: Record<string, string> = {
+    'Scheduled Tasks': 'S Tasks',
+    'Developer Tools': 'D Tools',
+  };
+  const [activeCategory, setActiveCategory] = useState<string>(categoryOrder[0] || 'Apps');
 
   const groupedTweaks = useMemo(() => {
     return ultimateTweaks.reduce((acc, tweak) => {
@@ -84,7 +89,8 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
       }
     } finally {
       setIsApplying(false);
-      setSelectedTweaks([]);
+      // Keep the applied tweaks switched ON so the UI reflects the machine's
+      // current state instead of resetting to off.
     }
   };
 
@@ -146,7 +152,7 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
                 onClick={() => setActiveCategory(category)}
               >
-                {category}
+                {categoryLabels[category] || category}
               </button>
             ))}
           </nav>

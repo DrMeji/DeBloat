@@ -80,7 +80,8 @@ const GamerView: React.FC = () => {
       }
     } finally {
       setIsApplying(false);
-      setSelectedTweaks([]);
+      // Keep the applied tweaks switched ON so the UI reflects the machine's
+      // current state instead of resetting to off.
     }
   };
 
