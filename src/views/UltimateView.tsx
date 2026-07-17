@@ -2,26 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { ultimateTweaks } from '../data/ultimateTweaks';
 import type { Tweak } from '../data/gamerTweaks';
 import './GamerView.css';
-import './UltimateView.css';
 
 type TweakStatus = 'applied' | 'failed' | 'pending';
 
-interface UltimateViewProps {
-  onCancel?: () => void;
-}
-
-const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
-  const [acknowledged, setAcknowledged] = useState(false);
+const UltimateView: React.FC = () => {
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
   const [tweakStatuses, setTweakStatuses] = useState<Record<string, TweakStatus>>({});
+  const [lastAppliedTweaks, setLastAppliedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
 
-  const categoryOrder = ['Apps', 'Security', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
-  const categoryLabels: Record<string, string> = {
-    'Scheduled Tasks': 'S Tasks',
-    'Developer Tools': 'D Tools',
-  };
-  const [activeCategory, setActiveCategory] = useState<string>('Apps');
+  const categoryOrder = ['Performance', 'Services', 'Security'];
+  const [activeCategory, setActiveCategory] = useState<string>('Performance');
 
   const groupedTweaks = useMemo(() => {
     return ultimateTweaks.reduce((acc, tweak) => {
@@ -55,12 +46,13 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   };
 
   const handleApplyChanges = () => {
-    console.log('Applying tweaks:', selectedTweaks);
+    console.log('Applying ULTIMATE tweaks:', selectedTweaks);
     const newStatuses: Record<string, TweakStatus> = {};
     selectedTweaks.forEach(id => {
       newStatuses[id] = Math.random() > 0.2 ? 'applied' : 'failed';
     });
     setTweakStatuses(prev => ({ ...prev, ...newStatuses }));
+    setLastAppliedTweaks(selectedTweaks);
     setSelectedTweaks([]);
   };
 
@@ -76,42 +68,6 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
     (a, b) => riskOrder[a.risk] - riskOrder[b.risk]
   );
 
-  if (!acknowledged) {
-    return (
-      <div className="ultimate-warning">
-        <div className="ultimate-warning-card">
-          <div className="ultimate-warning-icon">!</div>
-          <h1 className="ultimate-warning-title">Proceed with Caution</h1>
-          <p className="ultimate-warning-lead">
-            The Ultimate profile combines every Gamer and Developer tweak with the most
-            aggressive changes available. These options are powerful and permanent enough
-            that they can leave your PC exposed.
-          </p>
-          <ul className="ultimate-warning-list">
-            <li>Can <strong>completely disable Windows Defender &amp; Firewall</strong>, leaving no built-in antivirus.</li>
-            <li>Can <strong>completely remove Microsoft Edge</strong>, so some Windows features may break.</li>
-            <li>Can <strong>permanently disable Windows Update</strong>, so no more security patches.</li>
-            <li>Can <strong>turn off UAC &amp; SmartScreen</strong>, so apps run without prompts.</li>
-          </ul>
-          <p className="ultimate-warning-note">
-            Nothing is applied automatically. Every option starts <em>off</em>, and the danger
-            items are excluded from the “Recommended” preset. You are in control of what runs.
-          </p>
-          <div className="ultimate-warning-actions">
-            {onCancel && (
-              <button className="ultimate-btn-cancel" onClick={onCancel}>
-                Go Back
-              </button>
-            )}
-            <button className="ultimate-btn-continue" onClick={() => setAcknowledged(true)}>
-              I Understand, Continue
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="gamer-view">
       <div className="gamer-topbar">
@@ -123,7 +79,7 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
                 onClick={() => setActiveCategory(category)}
               >
-                {categoryLabels[category] || category}
+                {category}
               </button>
             ))}
           </nav>

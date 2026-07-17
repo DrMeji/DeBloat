@@ -27,7 +27,7 @@ function App() {
       case 'developer':
         return <DeveloperView />;
       case 'ultimate':
-        return <UltimateView onCancel={() => setActiveView('gamer')} />;
+        return <UltimateView />;
       case 'apps':
         return <AppsView />;
       default:
