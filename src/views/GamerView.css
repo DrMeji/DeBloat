@@ -1,0 +1,211 @@
+.gamer-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  padding: 2rem;
+  padding-bottom: 80px; /* Space for the footer */
+}
+
+.gamer-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.preset-btn {
+  background-color: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  color: #aaa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.tweaks-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.category-section {
+  margin-bottom: 1.5rem;
+}
+
+.category-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ccc;
+}
+
+.category-header .chevron {
+  font-size: 1.5rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.category-header .chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.tweak-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.tweak-info {
+  flex: 1;
+}
+
+.tweak-name {
+  font-weight: 500;
+  color: #fff;
+}
+
+.tweak-description {
+  font-size: 0.875rem;
+  color: #888;
+  margin-top: 0.25rem;
+  max-width: 80%;
+}
+
+.tweak-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.risk-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+  text-transform: capitalize;
+}
+
+.tweak-status {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.tweak-status.applied { color: #4ade80; }
+.tweak-status.failed { color: #f87171; }
+
+/* Custom Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #e5484d; /* Red accent */
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* Sticky Footer */
+.gamer-footer {
+  position: fixed;
+  bottom: 0;
+  left: 280px; /* Sidebar width */
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #111;
+  border-top: 1px solid #2a2a2a;
+}
+
+.footer-info {
+  color: #aaa;
+  font-weight: 500;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.apply-btn, .undo-btn {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-btn {
+  background-color: #e5484d;
+  color: white;
+}
+
+.apply-btn:hover:not(:disabled) {
+  background-color: #ff5c60;
+}
+
+.undo-btn {
+  background-color: #2a2a2a;
+  color: #aaa;
+}
+
+.undo-btn:hover:not(:disabled) {
+  background-color: #333;
+  color: white;
+}
+
+.apply-btn:disabled, .undo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

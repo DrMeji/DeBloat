@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import './App.css';
 import { Welcome } from './components/Welcome';
-import { Dashboard } from './components/Dashboard';
 import { Sidebar } from './components/Sidebar';
+import GamerView from './views/GamerView';
 
 function App() {
   const [started, setStarted] = useState(false);
@@ -12,12 +12,22 @@ function App() {
     return <Welcome onContinue={() => setStarted(true)} />;
   }
 
+  const renderView = () => {
+    switch (activeView) {
+      case 'gamer':
+        return <GamerView />;
+      // Other views like Developer, Ultimate, etc. can be added here later
+      default:
+        return <GamerView />;
+    }
+  };
+
   return (
     <div className="app">
       <Sidebar activeView={activeView} onViewChange={setActiveView} />
       <main className="main-content">
         <div className="view-container">
-          <Dashboard />
+          {renderView()}
         </div>
       </main>
     </div>
