@@ -19,12 +19,8 @@
   "author": "DeBloat Team",
   "license": "MIT",
   "dependencies": {
-    "framer-motion": "^11.0.8",
-    "lucide-react": "^0.323.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0",
-    "systeminformation": "^5.31.17"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
@@ -37,7 +33,6 @@
     "typescript": "^5.3.3",
     "vite": "^5.1.4",
     "vite-plugin-electron": "^1.1.0",
-    "vite-plugin-electron-renderer": "^1.0.0",
     "wait-on": "^7.2.0"
   },
   "build": {
@@ -52,6 +47,7 @@
     ],
     "win": {
       "requestedExecutionLevel": "requireAdministrator",
+      "signAndEditExecutable": false,
       "target": [
         "nsis"
       ]

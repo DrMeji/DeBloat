@@ -1,15 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { gamerTweaks, Tweak } from '../data/gamerTweaks';
 import { useTweakRunner } from '../hooks/useTweakRunner';
+import { useSession } from '../context/SessionContext';
 import './GamerView.css';
 
 const GamerView: React.FC = () => {
-  const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const {
+    gamer,
+    setProfileSelected,
+    setProfilePreset,
+    setProfileCategory,
+  } = useSession();
+  const { selected: selectedTweaks, preset: activePreset, category: activeCategory } = gamer;
   const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
 
   const categoryOrder = ['Apps', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks'];
-  const [activeCategory, setActiveCategory] = useState<string>('Apps');
 
   const groupedTweaks = useMemo(() => {
     return gamerTweaks.reduce((acc, tweak) => {
@@ -19,30 +24,29 @@ const GamerView: React.FC = () => {
   }, []);
 
   const toggleTweak = (id: string) => {
-    setActivePreset(null);
-    setSelectedTweaks(prev =>
+    setProfilePreset('gamer', null);
+    setProfileSelected('gamer', prev =>
       prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
     );
   };
 
   const handlePresetRecommended = () => {
-    setSelectedTweaks(gamerTweaks.filter(t => t.recommended).map(t => t.id));
-    setActivePreset('recommended');
+    setProfileSelected('gamer', gamerTweaks.filter(t => t.recommended).map(t => t.id));
+    setProfilePreset('gamer', 'recommended');
   };
 
   const handlePresetAggressive = () => {
-    setSelectedTweaks(gamerTweaks.map(t => t.id));
-    setActivePreset('aggressive');
+    setProfileSelected('gamer', gamerTweaks.map(t => t.id));
+    setProfilePreset('gamer', 'aggressive');
   };
 
   const handlePresetReset = () => {
-    setSelectedTweaks([]);
-    setActivePreset('reset');
+    setProfileSelected('gamer', []);
+    setProfilePreset('gamer', 'reset');
   };
 
   const handleApplyChanges = () => {
-    const toApply = gamerTweaks.filter(t => selectedTweaks.includes(t.id));
-    void runTweaks(toApply);
+    void runTweaks(gamerTweaks.filter(t => selectedTweaks.includes(t.id)));
   };
 
   const getRiskColor = (risk: Tweak['risk']) => {
@@ -66,7 +70,7 @@ const GamerView: React.FC = () => {
               <button
                 key={category}
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => setProfileCategory('gamer', category)}
               >
                 {category}
               </button>

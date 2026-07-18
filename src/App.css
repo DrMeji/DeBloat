@@ -1,7 +1,6 @@
-/* Hide scrollbars everywhere while keeping scroll functionality */
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
@@ -17,7 +16,6 @@
   overflow: hidden;
 }
 
-/* Welcome / landing screen */
 .welcome {
   position: relative;
   display: flex;
@@ -39,7 +37,7 @@
 }
 
 .welcome-icon {
-  color: #6b7280; /* A simple gray color */
+  color: #6b7280;
 }
 
 .welcome-title {
@@ -96,29 +94,6 @@
   background-color: #000000;
 }
 
-/* Card component */
-.card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Button styles */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -150,141 +125,4 @@
 
 .btn-secondary:hover {
   background-color: var(--bg-hover);
-}
-
-.btn-danger {
-  background-color: var(--danger);
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #dc2626;
-}
-
-.btn-gamer {
-  background-color: var(--accent-gamer);
-  color: white;
-}
-
-.btn-gamer:hover {
-  background-color: #dc2626;
-}
-
-.btn-developer {
-  background-color: var(--accent-developer);
-  color: white;
-}
-
-.btn-developer:hover {
-  background-color: #16a34a;
-}
-
-.btn-extreme {
-  background-color: var(--accent-extreme);
-  color: white;
-}
-
-.btn-extreme:hover {
-  background-color: #d97706;
-}
-
-/* Badge styles */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 9999px;
-}
-
-.badge-gamer {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: var(--accent-gamer);
-}
-
-.badge-developer {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: var(--accent-developer);
-}
-
-.badge-extreme {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: var(--accent-extreme);
-}
-
-/* Progress bar */
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background-color: var(--bg-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--accent-primary);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-/* Toggle switch */
-.toggle {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  background-color: var(--bg-tertiary);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.toggle.active {
-  background-color: var(--accent-primary);
-}
-
-.toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.2s ease;
-}
-
-.toggle.active .toggle-thumb {
-  transform: translateX(20px);
-}
-
-/* Grid layouts */
-.grid {
-  display: grid;
-  gap: 1rem;
-}
-
-.grid-2 {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.grid-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.grid-4 {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-@media (max-width: 1200px) {
-  .grid-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .grid-2, .grid-3, .grid-4 {
-    grid-template-columns: 1fr;
-  }
 }

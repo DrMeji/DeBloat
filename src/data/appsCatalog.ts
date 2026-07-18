@@ -9,12 +9,20 @@ export type AppCategory =
   | 'Microsoft Tools'
   | 'Selfhosted';
 
+export type AppInstallerKind = 'msi' | 'exe' | 'msix';
+
 export type AppItem = {
   id: string;
   name: string;
   category: AppCategory;
-  // Best-known winget package id (used later when wiring real installs).
+  // winget package id — used when no official downloadUrl is set
   winget?: string;
+  /** Official download URL (preferred). Quiet curl download + local install. */
+  downloadUrl?: string;
+  /** How to run the downloaded file. Defaults inferred from URL extension. */
+  installer?: AppInstallerKind;
+  /** Extra silent-install args for exe installers */
+  installerArgs?: string;
 };
 
 // Order the category tabs appear in.
@@ -44,6 +52,7 @@ export const appIconSlugs: Record<string, string> = {
   brave: 'brave',
   chrome: 'googlechrome',
   chromium: 'googlechrome',
+  'duckduckgo': 'duckduckgo',
   edge: 'microsoftedge',
   firefox: 'firefoxbrowser',
   'firefox-esr': 'firefoxbrowser',
@@ -155,6 +164,7 @@ export const appIconSlugs: Record<string, string> = {
 export const appIconUrls: Record<string, string> = {
   // Browsers
   edge: 'microsoft.com/edge',
+  duckduckgo: 'duckduckgo.com',
   waterfox: 'waterfox.net',
   'zen-browser': 'zen-browser.app',
 
@@ -229,12 +239,13 @@ export const appsCatalog: AppItem[] = [
   // ============================================================
   //  BROWSERS
   // ============================================================
-  { id: 'brave', name: 'Brave', category: 'Browsers', winget: 'Brave.Brave' },
-  { id: 'chrome', name: 'Chrome', category: 'Browsers', winget: 'Google.Chrome' },
+  { id: 'brave', name: 'Brave', category: 'Browsers', winget: 'Brave.Brave', downloadUrl: 'https://laptop-updates.brave.com/latest/winx64', installer: 'exe', installerArgs: '--install --silent --system-level' },
+  { id: 'chrome', name: 'Chrome', category: 'Browsers', winget: 'Google.Chrome', downloadUrl: 'https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi', installer: 'msi' },
   { id: 'chromium', name: 'Chromium', category: 'Browsers', winget: 'Hibbiki.Chromium' },
+  { id: 'duckduckgo', name: 'DuckDuckGo', category: 'Browsers', winget: 'DuckDuckGo.DesktopBrowser' },
   { id: 'edge', name: 'Edge', category: 'Browsers', winget: 'Microsoft.Edge' },
-  { id: 'firefox', name: 'Firefox', category: 'Browsers', winget: 'Mozilla.Firefox' },
-  { id: 'firefox-esr', name: 'Firefox ESR', category: 'Browsers', winget: 'Mozilla.Firefox.ESR' },
+  { id: 'firefox', name: 'Firefox', category: 'Browsers', winget: 'Mozilla.Firefox', downloadUrl: 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US', installer: 'exe', installerArgs: '/S' },
+  { id: 'firefox-esr', name: 'Firefox ESR', category: 'Browsers', winget: 'Mozilla.Firefox.ESR', downloadUrl: 'https://download.mozilla.org/?product=firefox-esr-latest-ssl&os=win64&lang=en-US', installer: 'exe', installerArgs: '/S' },
   { id: 'floorp', name: 'Floorp', category: 'Browsers', winget: 'Ablaze.Floorp' },
   { id: 'helium', name: 'Helium', category: 'Browsers' },
   { id: 'librewolf', name: 'LibreWolf', category: 'Browsers', winget: 'LibreWolf.LibreWolf' },
@@ -250,7 +261,7 @@ export const appsCatalog: AppItem[] = [
   // ============================================================
   { id: 'betterbird', name: 'Betterbird', category: 'Communications', winget: 'Betterbird.Betterbird' },
   { id: 'chatterino', name: 'Chatterino', category: 'Communications', winget: 'ChatterinoTeam.Chatterino' },
-  { id: 'discord', name: 'Discord', category: 'Communications', winget: 'Discord.Discord' },
+  { id: 'discord', name: 'Discord', category: 'Communications', winget: 'Discord.Discord', downloadUrl: 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64', installer: 'exe', installerArgs: '-s' },
   { id: 'dorion', name: 'Dorion', category: 'Communications', winget: 'SpikeHD.Dorion' },
   { id: 'element', name: 'Element', category: 'Communications', winget: 'Element.Element' },
   { id: 'proton-mail', name: 'Proton Mail', category: 'Communications', winget: 'Proton.ProtonMail' },
@@ -263,7 +274,7 @@ export const appsCatalog: AppItem[] = [
   { id: 'thunderbird', name: 'Thunderbird', category: 'Communications', winget: 'Mozilla.Thunderbird' },
   { id: 'vesktop', name: 'Vesktop', category: 'Communications', winget: 'Vencord.Vesktop' },
   { id: 'viber', name: 'Viber', category: 'Communications', winget: 'Viber.Viber' },
-  { id: 'whatsapp', name: 'WhatsApp Desktop', category: 'Communications', winget: '9NKSQGP7F2NH' },
+  { id: 'whatsapp', name: 'WhatsApp Desktop', category: 'Communications', winget: 'WhatsApp.WhatsApp' },
   { id: 'zoom', name: 'Zoom', category: 'Communications', winget: 'Zoom.Zoom' },
 
   // ============================================================
@@ -275,8 +286,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'cmake', name: 'CMake', category: 'Development', winget: 'Kitware.CMake' },
   { id: 'codex', name: 'Codex', category: 'Development', winget: 'OpenAI.Codex' },
   { id: 'cursor', name: 'Cursor', category: 'Development', winget: 'Anysphere.Cursor' },
-  { id: 'git', name: 'Git', category: 'Development', winget: 'Git.Git' },
-  { id: 'github-desktop', name: 'GitHub Desktop', category: 'Development', winget: 'GitHub.GitHubDesktop' },
+  { id: 'git', name: 'Git', category: 'Development', winget: 'Git.Git', downloadUrl: 'https://github.com/git-for-windows/git/releases/latest/download/Git-64-bit.exe', installer: 'exe', installerArgs: '/VERYSILENT /NORESTART' },
+  { id: 'github-desktop', name: 'GitHub Desktop', category: 'Development', winget: 'GitHub.GitHubDesktop', downloadUrl: 'https://central.github.com/deployments/desktop/desktop/latest/win32', installer: 'exe' },
   { id: 'go', name: 'Go', category: 'Development', winget: 'GoLang.Go' },
   { id: 'corretto-21', name: 'Amazon Corretto 21 (LTS)', category: 'Development', winget: 'Amazon.Corretto.21.JDK' },
   { id: 'corretto-25', name: 'Amazon Corretto 25 (LTS)', category: 'Development', winget: 'Amazon.Corretto.25.JDK' },
@@ -298,7 +309,7 @@ export const appsCatalog: AppItem[] = [
   { id: 'uv', name: 'uv', category: 'Development', winget: 'astral-sh.uv' },
   { id: 'vs-2022', name: 'Visual Studio 2022', category: 'Development', winget: 'Microsoft.VisualStudio.2022.Community' },
   { id: 'vs-2026', name: 'Visual Studio 2026', category: 'Development' },
-  { id: 'vscode', name: 'VS Code', category: 'Development', winget: 'Microsoft.VisualStudioCode' },
+  { id: 'vscode', name: 'VS Code', category: 'Development', winget: 'Microsoft.VisualStudioCode', downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user', installer: 'exe', installerArgs: '/VERYSILENT /NORESTART /MERGETASKS=!runcode' },
   { id: 'vscodium', name: 'VS Codium', category: 'Development', winget: 'VSCodium.VSCodium' },
   { id: 'yarn', name: 'Yarn', category: 'Development', winget: 'Yarn.Yarn' },
   { id: 'zed', name: 'Zed', category: 'Development', winget: 'Zed.Zed' },
@@ -317,7 +328,7 @@ export const appsCatalog: AppItem[] = [
   { id: 'overwolf', name: 'Overwolf', category: 'Games', winget: 'Overwolf.Overwolf' },
   { id: 'playnite', name: 'Playnite', category: 'Games', winget: 'Playnite.Playnite' },
   { id: 'prism-launcher', name: 'Prism Launcher', category: 'Games', winget: 'PrismLauncher.PrismLauncher' },
-  { id: 'steam', name: 'Steam', category: 'Games', winget: 'Valve.Steam' },
+  { id: 'steam', name: 'Steam', category: 'Games', winget: 'Valve.Steam', downloadUrl: 'https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe', installer: 'exe', installerArgs: '/S' },
   { id: 'ubisoft-connect', name: 'Ubisoft Connect', category: 'Games', winget: 'Ubisoft.Connect' },
   { id: 'virtual-desktop-streamer', name: 'Virtual Desktop Streamer', category: 'Games', winget: 'VirtualDesktop.Streamer' },
 
@@ -400,7 +411,7 @@ export const appsCatalog: AppItem[] = [
   { id: 'tightvnc', name: 'TightVNC', category: 'Utilities', winget: 'GlavSoft.TightVNC' },
   { id: 'total-commander', name: 'Total Commander', category: 'Utilities', winget: 'Ghisler.TotalCommander' },
   { id: 'treesize-free', name: 'TreeSize Free', category: 'Utilities', winget: 'JAMSoftware.TreeSize.Free' },
-  { id: 'translucenttb', name: 'TranslucentTB', category: 'Utilities', winget: '9PF4KZ2VN4W9' },
+  { id: 'translucenttb', name: 'TranslucentTB', category: 'Utilities', winget: 'TranslucentTB.TranslucentTB' },
   { id: 'unigetui', name: 'UniGetUI', category: 'Utilities', winget: 'MartiCliment.UniGetUI' },
   { id: 'winrar', name: 'WinRAR', category: 'Utilities', winget: 'RARLab.WinRAR' },
   { id: 'wise-program-uninstaller', name: 'Wise Program Uninstaller', category: 'Utilities', winget: 'WiseCleaner.WiseProgramUninstaller' },

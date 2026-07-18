@@ -1,15 +1,14 @@
-import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
 import * as path from 'path';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isQuitting = false;
 
 function getTrayImage() {
   const candidates = [
     path.join(app.getAppPath(), 'src', 'assets', 'logo.png'),
     path.join(__dirname, '../src/assets/logo.png'),
-    path.join(__dirname, '../public/icon.png'),
+    path.join(__dirname, '../dist/assets/logo.png'),
   ];
   for (const p of candidates) {
     const img = nativeImage.createFromPath(p);
@@ -26,7 +25,7 @@ function createTray() {
     const menu = Menu.buildFromTemplate([
       { label: 'Open DeBloat', click: () => showWindow() },
       { type: 'separator' },
-      { label: 'Quit', click: () => { isQuitting = true; app.quit(); } },
+      { label: 'Quit', click: () => app.quit() },
     ]);
     tray.setContextMenu(menu);
     tray.on('click', () => showWindow());
@@ -59,11 +58,9 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../public/icon.png')
+    icon: path.join(__dirname, '../src/assets/logo.png')
   });
 
-  // Load the app: use the Vite dev server URL in development,
-  // otherwise fall back to the built files.
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
@@ -75,71 +72,13 @@ function createWindow() {
   });
 }
 
-// IPC Handlers for secure communication
-ipcMain.handle('minimize-window', () => {
-  mainWindow?.minimize();
-});
-
-ipcMain.handle('maximize-window', () => {
-  if (mainWindow?.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow?.maximize();
-  }
-});
-
-// Hide the window to the system tray instead of closing it.
 ipcMain.handle('minimize-to-tray', () => {
   createTray();
   mainWindow?.hide();
 });
 
-// The X button fully exits the app.
 ipcMain.handle('close-window', () => {
-  isQuitting = true;
   app.quit();
-});
-
-ipcMain.handle('get-system-info', async () => {
-  const os = require('os');
-  const si = require('systeminformation');
-  
-  try {
-    const [cpu, mem, osInfo, graphics] = await Promise.all([
-      si.cpu(),
-      si.mem(),
-      si.osInfo(),
-      si.graphics()
-    ]);
-
-    return {
-      cpu: {
-        manufacturer: cpu.manufacturer,
-        brand: cpu.brand,
-        cores: cpu.cores,
-        speed: cpu.speed
-      },
-      memory: {
-        total: mem.total,
-        used: mem.used,
-        free: mem.free
-      },
-      os: {
-        platform: osInfo.platform,
-        distro: osInfo.distro,
-        release: osInfo.release,
-        arch: osInfo.arch
-      },
-      graphics: graphics.controllers.map(g => ({
-        model: g.model,
-        vendor: g.vendor,
-        vram: g.vram
-      }))
-    };
-  } catch (error) {
-    console.error('Error getting system info:', error);
-    return null;
-  }
 });
 
 // ------------------------------------------------------------------
@@ -191,17 +130,19 @@ function buildRegistryCommand(target: string, val: Record<string, unknown>): str
 function buildServiceCommand(target: string, val: Record<string, unknown>): string {
   const startup = SERVICE_STARTUP[String(val.startup)] || 'Manual';
   const names = target.split(',').map(s => s.trim()).filter(Boolean);
-  const parts: string[] = [];
+  const parts: string[] = ["$ErrorActionPreference = 'SilentlyContinue'"];
   for (const name of names) {
-    // Only act if the service actually exists on this system. A service that
-    // isn't installed (e.g. NVIDIA telemetry on a machine with no NVIDIA GPU)
-    // is treated as "nothing to do" rather than a failure.
-    let inner = `Set-Service -Name '${name}' -StartupType ${startup} -ErrorAction SilentlyContinue`;
-    if (val.startup === 'disabled') {
-      inner += `; Stop-Service -Name '${name}' -Force -ErrorAction SilentlyContinue`;
-    }
-    parts.push(`if (Get-Service -Name '${name}' -ErrorAction SilentlyContinue) { ${inner} }`);
+    // Prefer sc.exe for stubborn/protected services; never fail the whole tweak.
+    parts.push(
+      `if (Get-Service -Name '${name}' -ErrorAction SilentlyContinue) { ` +
+      `Write-Output \"Service ${name}\"; ` +
+      `Stop-Service -Name '${name}' -Force -ErrorAction SilentlyContinue; ` +
+      `Set-Service -Name '${name}' -StartupType ${startup} -ErrorAction SilentlyContinue; ` +
+      `sc.exe config '${name}' start= ${startup === 'Disabled' ? 'disabled' : startup === 'Automatic' ? 'auto' : 'demand'} | Out-Null ` +
+      `} else { Write-Output \"Service ${name} not present (skipped)\" }`
+    );
   }
+  parts.push('exit 0');
   return parts.join('; ');
 }
 
@@ -258,7 +199,11 @@ function buildTweakCommand(tweak: TweakPayload, mode: 'apply' | 'undo'): string 
     case 'command': {
       const cmd = String(mode === 'apply' ? tweak.target : tweak.undo);
       // PowerShell 5.1 does not support '&&'; use ';' for sequential execution.
-      return cmd.replace(/&&/g, ';');
+      const normalized = cmd.replace(/&&/g, ';');
+      // Stubborn services (e.g. TabletInput) can leave a non-zero native exit code;
+      // always force success so the tweak is reported correctly.
+      if (/\bexit\s+0\b/i.test(normalized)) return normalized;
+      return `${normalized}; exit 0`;
     }
     case 'appx': {
       return mode === 'apply'
@@ -272,7 +217,8 @@ function buildTweakCommand(tweak: TweakPayload, mode: 'apply' | 'undo'): string 
 
 function runPowershell(
   command: string,
-  onOutput?: (chunk: string) => void
+  onOutput?: (chunk: string) => void,
+  timeoutMs = 300000
 ): Promise<{ success: boolean; error?: string }> {
   const { spawn } = require('child_process');
   return new Promise((resolve) => {
@@ -284,8 +230,8 @@ function runPowershell(
     let stderr = '';
     const timer = setTimeout(() => {
       try { child.kill(); } catch { /* ignore */ }
-      resolve({ success: false, error: 'Timed out after 5 minutes' });
-    }, 300000);
+      resolve({ success: false, error: `Timed out after ${Math.round(timeoutMs / 60000)} minutes` });
+    }, timeoutMs);
 
     child.stdout?.on('data', (buf: Buffer) => {
       const text = buf.toString();
@@ -310,6 +256,104 @@ function runPowershell(
       }
     });
   });
+}
+
+function createQuietOutputPump(
+  onLine: (line: string) => void
+): (chunk: string) => void {
+  let buffer = '';
+  let lastProgressAt = 0;
+  let lastProgressKey = '';
+
+  const isSpinner = (line: string) => /^[\s\\|\/\-]+$/.test(line);
+  const isProgressBar = (line: string) =>
+    /[█▒░]/.test(line) || /\d+(\.\d+)?\s*MB\s*\/\s*\d+(\.\d+)?\s*MB/i.test(line);
+  const isNoise = (line: string) =>
+    isSpinner(line) ||
+    /^[\s\u0000-\u001f]*$/.test(line) ||
+    line === 'This application is licensed to you by its owner.' ||
+    line === 'Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.';
+
+  const emitProgress = (line: string) => {
+    const match = line.match(/([\d.]+)\s*MB\s*\/\s*([\d.]+)\s*MB/i);
+    if (!match) return;
+    const cur = parseFloat(match[1]);
+    const total = parseFloat(match[2]);
+    if (!total) return;
+    const pct = Math.min(99, Math.round((cur / total) * 100));
+    const key = `${Math.floor(pct / 10)}`;
+    const now = Date.now();
+    if (key === lastProgressKey && now - lastProgressAt < 2500) return;
+    lastProgressKey = key;
+    lastProgressAt = now;
+    onLine(`Downloading… ${cur} MB / ${total} MB (${pct}%)`);
+  };
+
+  const handlePiece = (raw: string) => {
+    const line = raw.replace(/\u001b\[[0-9;]*m/g, '').trim();
+    if (!line || isNoise(line)) return;
+    if (isProgressBar(line)) {
+      emitProgress(line);
+      return;
+    }
+    onLine(line);
+  };
+
+  return (chunk: string) => {
+    buffer += chunk;
+    const parts = buffer.split(/\r|\n/);
+    buffer = parts.pop() || '';
+    for (const part of parts) handlePiece(part);
+  };
+}
+
+function buildDirectInstallCommand(app: {
+  id: string;
+  name?: string;
+  downloadUrl: string;
+  installer?: string;
+  installerArgs?: string;
+}): string {
+  const url = app.downloadUrl.replace(/'/g, "''");
+  const ext =
+    app.installer === 'msi' ? '.msi'
+      : app.installer === 'msix' ? '.msix'
+        : app.downloadUrl.toLowerCase().includes('.msi') ? '.msi'
+          : '.exe';
+  const fileName = `${app.id}${ext}`;
+  const args = (app.installerArgs || '').replace(/'/g, "''");
+
+  let runBlock: string;
+  if (ext === '.msi' || app.installer === 'msi') {
+    runBlock =
+      `$p = Start-Process -FilePath 'msiexec.exe' -ArgumentList '/i', $out, '/qn', '/norestart' -Wait -PassThru; ` +
+      `if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { Write-Output \"msiexec exit $($p.ExitCode)\"; exit $p.ExitCode }`;
+  } else if (app.installer === 'msix' || ext === '.msix') {
+    runBlock = `Add-AppxPackage -Path $out -ErrorAction Stop; Write-Output 'AppX package registered'`;
+  } else {
+    const argList = args ? `-ArgumentList '${args}'` : '';
+    runBlock =
+      `$p = Start-Process -FilePath $out ${argList} -Wait -PassThru; ` +
+      `if ($null -ne $p.ExitCode -and $p.ExitCode -ne 0) { Write-Output \"installer exit $($p.ExitCode)\"; exit $p.ExitCode }`;
+  }
+
+  return (
+    `$ErrorActionPreference='Stop'; ` +
+    `$dir = Join-Path $env:TEMP 'DeBloat-Installers'; ` +
+    `New-Item -ItemType Directory -Force -Path $dir | Out-Null; ` +
+    `$out = Join-Path $dir '${fileName}'; ` +
+    `Write-Output 'Downloading from official site...'; ` +
+    `Write-Output '${url}'; ` +
+    `& curl.exe -L --fail --silent --show-error --retry 3 --connect-timeout 30 -o $out '${url}'; ` +
+    `if ($LASTEXITCODE -ne 0) { Write-Output \"Download failed (curl exit $LASTEXITCODE)\"; exit 1 }; ` +
+    `if (-not (Test-Path $out) -or (Get-Item $out).Length -lt 1024) { Write-Output 'Download failed (empty file)'; exit 1 }; ` +
+    `$mb = [math]::Round((Get-Item $out).Length / 1MB, 1); ` +
+    `Write-Output \"Download complete ($mb MB)\"; ` +
+    `Write-Output 'Running installer...'; ` +
+    `${runBlock}; ` +
+    `Write-Output 'Install finished'; ` +
+    `exit 0`
+  );
 }
 
 function sendLog(event: { sender: { send: (channel: string, payload: unknown) => void } }, payload: Record<string, unknown>) {
@@ -427,23 +471,262 @@ ipcMain.handle('apply-tweaks', async (event, tweaks: TweakPayload[], mode: 'appl
     results.push({ id: tweak.id, success: result.success, error: result.error });
   }
 
-  sendLog(event, { type: 'done', successCount, failCount, skipCount, total });
+  sendLog(event, {
+    type: 'done',
+    successCount,
+    failCount,
+    skipCount,
+    total,
+    skippedNames: results.filter(r => r.skipped).map(r => {
+      const t = tweaks.find(x => x.id === r.id);
+      return t?.name || r.id;
+    }),
+  });
   return { results, successCount, failCount, skipCount, total };
 });
 
-// Install a batch of apps via winget, returning a per-app result.
-ipcMain.handle('install-apps', async (_event, apps: { id: string; winget?: string }[]) => {
-  const results: { id: string; success: boolean; error?: string }[] = [];
+async function runPowershellFile(
+  scriptBody: string,
+  onOutput?: (chunk: string) => void,
+  timeoutMs = 900000
+): Promise<{ success: boolean; error?: string }> {
+  const fs = require('fs');
+  const os = require('os');
+  const scriptPath = path.join(os.tmpdir(), `debloat-${Date.now()}-${Math.random().toString(36).slice(2)}.ps1`);
+  fs.writeFileSync(scriptPath, scriptBody, 'utf8');
+  try {
+    const escaped = scriptPath.replace(/'/g, "''");
+    return await runPowershell(`& '${escaped}'`, onOutput, timeoutMs);
+  } finally {
+    try { fs.unlinkSync(scriptPath); } catch { /* ignore */ }
+  }
+}
+
+/** Match catalog apps against winget list + uninstall registry names. */
+async function detectInstalledAppIds(
+  apps: { id: string; name?: string; winget?: string }[]
+): Promise<Set<string>> {
+  const installed = new Set<string>();
+  let blob = '';
+  await runPowershellFile(
+    `$ErrorActionPreference='SilentlyContinue'
+$winget = winget list --source winget --accept-source-agreements --disable-interactivity 2>&1 | Out-String
+'---WINGET---'
+$winget
+'---REG---'
+$paths = @(
+  'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*',
+  'HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*',
+  'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'
+)
+Get-ItemProperty $paths -ErrorAction SilentlyContinue | ForEach-Object { if ($_.DisplayName) { $_.DisplayName } }
+exit 0
+`,
+    (chunk) => { blob += chunk; },
+    180000
+  );
+
+  const lowerBlob = blob.toLowerCase();
   for (const app of apps) {
-    if (!app.winget) {
-      results.push({ id: app.id, success: false, error: 'No winget package id available' });
+    if (app.winget && lowerBlob.includes(app.winget.toLowerCase())) {
+      installed.add(app.id);
       continue;
     }
-    const command = `winget install --id ${app.winget} -e --silent --accept-package-agreements --accept-source-agreements`;
-    const result = await runPowershell(command);
+    if (app.name && app.name.length >= 5 && lowerBlob.includes(app.name.toLowerCase())) {
+      installed.add(app.id);
+    }
+  }
+  return installed;
+}
+
+function buildResolvedVendorInstallScript(app: {
+  id: string;
+  winget: string;
+  installerArgs?: string;
+}): string {
+  const id = app.winget.replace(/'/g, "''");
+  const fileId = app.id.replace(/'/g, "''");
+  const extraArgs = (app.installerArgs || '').replace(/'/g, "''");
+  return `$ErrorActionPreference = 'Continue'
+$id = '${id}'
+Write-Output 'Resolving official installer URL...'
+$raw = & winget show -e --id $id --source winget --accept-source-agreements 2>&1 | Out-String
+$url = $null
+if ($raw -match '(?im)Installer Url:\\s+(\\S+)') { $url = $Matches[1] }
+elseif ($raw -match '(?im)InstallerURL:\\s+(\\S+)') { $url = $Matches[1] }
+
+if (-not $url) {
+  Write-Output 'No direct URL in catalog — installing via winget community source (vendor CDN, not Microsoft Store)'
+  & winget install --id $id -e --source winget --silent --accept-package-agreements --accept-source-agreements
+  $code = $LASTEXITCODE
+  if ($code -eq 0 -or $code -eq -1978335189 -or $code -eq -1978335212) { Write-Output 'Install finished'; exit 0 }
+  Write-Output "winget exit $code"; exit $code
+}
+
+$dir = Join-Path $env:TEMP 'DeBloat-Installers'
+New-Item -ItemType Directory -Force -Path $dir | Out-Null
+$ext = '.exe'
+if ($url -match '\\.msi(\\?|$)') { $ext = '.msi' }
+elseif ($url -match '\\.msix') { $ext = '.msix' }
+elseif ($url -match '\\.appx') { $ext = '.appx' }
+$out = Join-Path $dir ('${fileId}' + $ext)
+
+Write-Output 'Downloading from official site...'
+Write-Output $url
+& curl.exe -L --fail --silent --show-error --retry 3 --connect-timeout 30 -o $out $url
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $out) -or (Get-Item $out).Length -lt 1024) {
+  Write-Output 'Direct download failed — falling back to winget install'
+  & winget install --id $id -e --source winget --silent --accept-package-agreements --accept-source-agreements
+  $code = $LASTEXITCODE
+  if ($code -eq 0 -or $code -eq -1978335189 -or $code -eq -1978335212) { Write-Output 'Install finished'; exit 0 }
+  exit $code
+}
+
+$mb = [math]::Round((Get-Item $out).Length / 1MB, 1)
+Write-Output "Download complete ($mb MB)"
+Write-Output 'Running installer...'
+
+if ($ext -eq '.msi') {
+  $p = Start-Process -FilePath 'msiexec.exe' -ArgumentList '/i', $out, '/qn', '/norestart' -Wait -PassThru
+  if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { Write-Output "msiexec exit $($p.ExitCode)"; exit $p.ExitCode }
+} elseif ($ext -eq '.msix' -or $ext -eq '.appx') {
+  Add-AppxPackage -Path $out -ErrorAction Stop
+} else {
+  $extra = '${extraArgs}'.Trim()
+  $tried = $false
+  $ok = $false
+  if ($extra) {
+    $tried = $true
+    $p = Start-Process -FilePath $out -ArgumentList $extra -Wait -PassThru -ErrorAction SilentlyContinue
+    if ($null -eq $p -or $null -eq $p.ExitCode -or $p.ExitCode -eq 0) { $ok = $true }
+  }
+  if (-not $ok) {
+    foreach ($a in @('/S', '/silent', '/VERYSILENT', '/quiet', '-s')) {
+      $tried = $true
+      $p = Start-Process -FilePath $out -ArgumentList $a -Wait -PassThru -ErrorAction SilentlyContinue
+      if ($null -eq $p -or $null -eq $p.ExitCode -or $p.ExitCode -eq 0) { $ok = $true; break }
+    }
+  }
+  if (-not $ok) {
+    Write-Output 'Silent install uncertain — finishing with winget install (in-place upgrade if present)'
+    & winget install --id $id -e --source winget --silent --accept-package-agreements --accept-source-agreements
+    $code = $LASTEXITCODE
+    if ($code -ne 0 -and $code -ne -1978335189 -and $code -ne -1978335212) { exit $code }
+  }
+}
+
+Write-Output 'Install finished'
+exit 0
+`;
+}
+
+// Scan which catalog apps are already on this PC
+ipcMain.handle('check-installed-apps', async (_event, apps: { id: string; name?: string; winget?: string }[]) => {
+  const set = await detectInstalledAppIds(apps || []);
+  return Array.from(set);
+});
+
+// Install apps: skip if present; prefer official URL (direct or winget-resolved); never msstore.
+ipcMain.handle('install-apps', async (event, apps: {
+  id: string;
+  name?: string;
+  winget?: string;
+  downloadUrl?: string;
+  installer?: string;
+  installerArgs?: string;
+}[]) => {
+  const results: { id: string; success: boolean; skipped?: boolean; error?: string }[] = [];
+  const total = apps.length;
+  let successCount = 0;
+  let failCount = 0;
+  let skipCount = 0;
+
+  sendLog(event, { type: 'output', line: 'Checking which apps are already installed...' });
+  const already = await detectInstalledAppIds(apps);
+
+  for (let i = 0; i < apps.length; i++) {
+    const app = apps[i];
+    const label = app.name || app.id;
+    sendLog(event, { type: 'start', id: app.id, name: `Install ${label}`, index: i + 1, total });
+
+    if (already.has(app.id)) {
+      skipCount += 1;
+      results.push({ id: app.id, success: true, skipped: true, error: 'Already installed' });
+      sendLog(event, {
+        type: 'skip',
+        id: app.id,
+        name: `Install ${label}`,
+        error: 'Already installed on this PC — skipped (no duplicate install)',
+      });
+      continue;
+    }
+
+    const useDirect = Boolean(app.downloadUrl);
+    if (!useDirect && !app.winget) {
+      failCount += 1;
+      results.push({ id: app.id, success: false, error: 'No download URL or winget id available' });
+      sendLog(event, {
+        type: 'fail',
+        id: app.id,
+        name: `Install ${label}`,
+        error: 'No download URL or winget id available',
+      });
+      continue;
+    }
+
+    let preview: string;
+    let result: { success: boolean; error?: string };
+
+    const pump = createQuietOutputPump((line) => {
+      sendLog(event, { type: 'output', id: app.id, line });
+    });
+
+    if (useDirect && app.downloadUrl) {
+      preview = 'Download from official site + silent install';
+      sendLog(event, { type: 'command', id: app.id, line: preview });
+      const command = buildDirectInstallCommand({
+        id: app.id,
+        name: app.name,
+        downloadUrl: app.downloadUrl,
+        installer: app.installer,
+        installerArgs: app.installerArgs,
+      });
+      result = await runPowershell(command, pump, 900000);
+    } else {
+      preview = `Resolve official URL for ${app.winget} → download + install`;
+      sendLog(event, { type: 'command', id: app.id, line: preview });
+      const script = buildResolvedVendorInstallScript({
+        id: app.id,
+        winget: app.winget!,
+        installerArgs: app.installerArgs,
+      });
+      result = await runPowershellFile(script, pump, 900000);
+    }
+
+    if (result.success) {
+      successCount += 1;
+      already.add(app.id);
+      sendLog(event, { type: 'success', id: app.id, name: `Install ${label}` });
+    } else {
+      failCount += 1;
+      sendLog(event, { type: 'fail', id: app.id, name: `Install ${label}`, error: result.error });
+    }
     results.push({ id: app.id, success: result.success, error: result.error });
   }
-  return results;
+
+  sendLog(event, {
+    type: 'done',
+    successCount,
+    failCount,
+    skipCount,
+    total,
+    finishedLabel: 'installed',
+    skippedNames: results.filter(r => r.skipped).map(r => {
+      const a = apps.find(x => x.id === r.id);
+      return a?.name || r.id;
+    }),
+  });
+  return { results, successCount, failCount, skipCount, total };
 });
 
 ipcMain.handle('create-restore-point', async () => {
@@ -458,13 +741,18 @@ ipcMain.handle('create-restore-point', async () => {
   });
 });
 
+ipcMain.handle('restart-computer', async () => {
+  const { exec } = require('child_process');
+  return new Promise((resolve) => {
+    exec('shutdown /r /t 3 /c "DeBloat: restarting to finish applied changes"', (error: Error | null) => {
+      resolve({ success: !error, error: error?.message });
+    });
+  });
+});
+
 app.whenReady().then(() => {
   createWindow();
   createTray();
-});
-
-app.on('before-quit', () => {
-  isQuitting = true;
 });
 
 app.on('window-all-closed', () => {

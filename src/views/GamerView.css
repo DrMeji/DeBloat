@@ -201,7 +201,7 @@ input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
-.apply-btn, .undo-btn {
+.apply-btn {
   border: none;
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
@@ -209,9 +209,6 @@ input:checked + .toggle-slider:before {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.apply-btn {
   background-color: #3b82f6;
   color: white;
 }
@@ -220,17 +217,7 @@ input:checked + .toggle-slider:before {
   background-color: #2563eb;
 }
 
-.undo-btn {
-  background-color: #2a2a2a;
-  color: #aaa;
-}
-
-.undo-btn:hover:not(:disabled) {
-  background-color: #333;
-  color: white;
-}
-
-.apply-btn:disabled, .undo-btn:disabled {
+.apply-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

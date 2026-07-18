@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   appsCatalog,
   appCategoryOrder,
@@ -6,23 +6,57 @@ import {
   appIconSlugs,
   appIconUrls,
   type AppItem,
-  type AppCategory,
 } from '../data/appsCatalog';
+import { useTerminal } from '../context/TerminalContext';
+import { useSession } from '../context/SessionContext';
 import './GamerView.css';
 import './AppsView.css';
+
+interface AppsViewProps {
+  onNavigateToTerminal: () => void;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const electronAPI = (window as any).electronAPI;
 
-const AppsView: React.FC = () => {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [installed, setInstalled] = useState<string[]>([]);
-  const [failed, setFailed] = useState<string[]>([]);
-  const [isInstalling, setIsInstalling] = useState(false);
-  // Tracks which fallback stage each app's icon is on (0 = Simple Icons,
-  // 1 = website favicon, 2+ = letter avatar).
-  const [iconStage, setIconStage] = useState<Record<string, number>>({});
-  const [activeCategory, setActiveCategory] = useState<AppCategory>('Browsers');
+const AppsView: React.FC<AppsViewProps> = ({ onNavigateToTerminal }) => {
+  const { isApplying, runAppInstalls } = useTerminal();
+  const {
+    appsSelected: selected,
+    appsInstalled: installed,
+    appsFailed: failed,
+    appsCategory: activeCategory,
+    appsScanned,
+    setAppsSelected,
+    setAppsInstalled,
+    setAppsFailed,
+    setAppsCategory,
+    setAppsScanned,
+    markAppsInstalled,
+  } = useSession();
+
+  const [iconStage, setIconStage] = React.useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (appsScanned) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (electronAPI?.checkInstalledApps) {
+          const ids: string[] = await electronAPI.checkInstalledApps(
+            appsCatalog.map(a => ({ id: a.id, name: a.name, winget: a.winget }))
+          );
+          if (!cancelled && Array.isArray(ids)) {
+            setAppsInstalled(prev => Array.from(new Set([...prev, ...ids])));
+            setAppsSelected(prev => prev.filter(id => !ids.includes(id)));
+          }
+        }
+      } finally {
+        if (!cancelled) setAppsScanned(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [appsScanned, setAppsInstalled, setAppsSelected, setAppsScanned]);
 
   const getIconSources = (id: string): string[] => {
     const sources: string[] = [];
@@ -41,39 +75,27 @@ const AppsView: React.FC = () => {
   }, []);
 
   const toggleApp = (id: string) => {
-    setSelected(prev =>
+    if (isApplying || installed.includes(id)) return;
+    setAppsSelected(prev =>
       prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
     );
   };
 
   const handleInstall = async () => {
-    const ids = [...selected];
-    if (ids.length === 0) return;
+    const ids = selected.filter(id => !installed.includes(id));
+    if (ids.length === 0 || isApplying) return;
     const toInstall = appsCatalog.filter(a => ids.includes(a.id));
-    setIsInstalling(true);
-    setFailed(prev => prev.filter(id => !ids.includes(id)));
-
-    try {
-      if (electronAPI?.installApps) {
-        const results = await electronAPI.installApps(toInstall);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ok = results.filter((r: any) => r.success).map((r: any) => r.id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const bad = results.filter((r: any) => !r.success).map((r: any) => r.id);
-        setInstalled(prev => Array.from(new Set([...prev, ...ok])));
-        setFailed(prev => Array.from(new Set([...prev, ...bad])));
-      } else {
-        // Browser preview (no Electron bridge): simulate a successful install.
-        await new Promise(res => setTimeout(res, 600));
-        setInstalled(prev => Array.from(new Set([...prev, ...ids])));
-      }
-    } finally {
-      setIsInstalling(false);
-      setSelected([]);
-    }
+    setAppsFailed(prev => prev.filter(id => !ids.includes(id)));
+    setAppsSelected([]);
+    onNavigateToTerminal();
+    const { ok, bad } = await runAppInstalls(toInstall);
+    markAppsInstalled(ok);
+    setAppsFailed(prev => Array.from(new Set([...prev, ...bad])));
   };
 
   const activeApps = groupedApps[activeCategory] || [];
+  const selectableCount = selected.filter(id => !installed.includes(id)).length;
+  const scanning = !appsScanned;
 
   return (
     <div className="gamer-view">
@@ -84,7 +106,7 @@ const AppsView: React.FC = () => {
               <button
                 key={category}
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => setAppsCategory(category)}
               >
                 {appCategoryLabels[category] || category}
               </button>
@@ -92,9 +114,13 @@ const AppsView: React.FC = () => {
           </nav>
 
           <div className="header-actions">
-            <span className="selected-count">{selected.length}</span>
-            <button className="apply-btn" onClick={handleInstall} disabled={selected.length === 0 || isInstalling}>
-              {isInstalling ? 'Installing…' : 'Install Selected'}
+            <span className="selected-count">{selectableCount}</span>
+            <button
+              className="apply-btn"
+              onClick={() => void handleInstall()}
+              disabled={selectableCount === 0 || isApplying || scanning}
+            >
+              {isApplying ? 'Installing…' : scanning ? 'Scanning…' : 'Install Selected'}
             </button>
           </div>
         </header>
@@ -113,7 +139,14 @@ const AppsView: React.FC = () => {
               key={app.id}
               className={`app-card ${isSelected ? 'selected' : ''} ${isInstalled ? 'installed' : ''} ${isFailed ? 'failed' : ''}`}
               onClick={() => toggleApp(app.id)}
-              title={isFailed ? 'Install failed, try again' : (app.winget || app.name)}
+              disabled={isApplying || isInstalled}
+              title={
+                isInstalled
+                  ? 'Already installed'
+                  : isFailed
+                    ? 'Install failed, try again'
+                    : (app.winget || app.name)
+              }
             >
               <span className="app-avatar">
                 {iconSrc ? (
@@ -129,7 +162,11 @@ const AppsView: React.FC = () => {
                 )}
               </span>
               <span className="app-name">{app.name}</span>
-              <span className="app-dot" />
+              {isInstalled ? (
+                <span className="app-status">Installed</span>
+              ) : (
+                <span className="app-dot" />
+              )}
             </button>
           );
         })}

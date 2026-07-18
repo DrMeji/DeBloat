@@ -85,6 +85,25 @@
   background-color: #4ade80;
 }
 
+.app-card.installed {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.app-card.installed:hover {
+  background-color: #0f0f0f;
+  border-color: #222;
+}
+
+.app-status {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4ade80;
+}
+
 .app-card.failed {
   border-color: #f87171;
 }

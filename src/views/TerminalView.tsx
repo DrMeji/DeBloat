@@ -3,7 +3,16 @@ import { useTerminal } from '../context/TerminalContext';
 import './TerminalView.css';
 
 const TerminalView: React.FC = () => {
-  const { logLines, isApplying, applySummary, clearLogs } = useTerminal();
+  const {
+    logLines,
+    isApplying,
+    applySummary,
+    progressPercent,
+    showRestartPrompt,
+    clearLogs,
+    dismissRestartPrompt,
+    restartNow,
+  } = useTerminal();
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,10 +29,6 @@ const TerminalView: React.FC = () => {
           <h1 className={`terminal-view-title ${isApplying ? 'is-live' : ''}`}>Live Terminal</h1>
           {applySummary && <span className="terminal-view-summary">{applySummary}</span>}
         </div>
-        <p className="terminal-view-lead">
-          Watch every remove, disable, and registry change as it runs. Open this tab while Apply is
-          running on Gamer, Developer, or Ultimate.
-        </p>
         <div className="terminal-view-actions">
           <button
             type="button"
@@ -33,8 +38,34 @@ const TerminalView: React.FC = () => {
           >
             Clear
           </button>
+          {progressPercent !== null && (
+            <span className="terminal-progress" aria-live="polite">
+              {progressPercent}%
+            </span>
+          )}
         </div>
       </header>
+
+      {showRestartPrompt && !isApplying && (
+        <div className="terminal-restart-prompt" role="dialog" aria-labelledby="restart-prompt-title">
+          <div className="terminal-restart-card">
+            <h2 id="restart-prompt-title" className="terminal-restart-title">
+              Restart your PC?
+            </h2>
+            <p className="terminal-restart-lead">
+              Some changes (Defender, services, features) only fully take effect after a restart.
+            </p>
+            <div className="terminal-restart-actions">
+              <button type="button" className="terminal-restart-later" onClick={dismissRestartPrompt}>
+                Restart later
+              </button>
+              <button type="button" className="terminal-restart-now" onClick={() => void restartNow()}>
+                Restart now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="terminal-view-body" ref={bodyRef}>
         {logLines.length === 0 ? (

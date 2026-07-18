@@ -1,18 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ultimateTweaks } from '../data/ultimateTweaks';
 import type { Tweak } from '../data/gamerTweaks';
 import { useTweakRunner } from '../hooks/useTweakRunner';
+import { useSession } from '../context/SessionContext';
 import './GamerView.css';
 import './UltimateView.css';
 
 interface UltimateViewProps {
   onCancel?: () => void;
+  acknowledged: boolean;
+  onAcknowledge: () => void;
 }
 
-const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+const UltimateView: React.FC<UltimateViewProps> = ({ onCancel, acknowledged, onAcknowledge }) => {
+  const {
+    ultimate,
+    setProfileSelected,
+    setProfilePreset,
+    setProfileCategory,
+  } = useSession();
+  const { selected: selectedTweaks, preset: activePreset, category: activeCategory } = ultimate;
   const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
 
   const preferredOrder = ['Apps', 'Security', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
@@ -21,7 +28,6 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
     'Scheduled Tasks': 'S Tasks',
     'Developer Tools': 'D Tools',
   };
-  const [activeCategory, setActiveCategory] = useState<string>(categoryOrder[0] || 'Apps');
 
   const groupedTweaks = useMemo(() => {
     return ultimateTweaks.reduce((acc, tweak) => {
@@ -31,25 +37,25 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   }, []);
 
   const toggleTweak = (id: string) => {
-    setActivePreset(null);
-    setSelectedTweaks(prev =>
+    setProfilePreset('ultimate', null);
+    setProfileSelected('ultimate', prev =>
       prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
     );
   };
 
   const handlePresetRecommended = () => {
-    setSelectedTweaks(ultimateTweaks.filter(t => t.recommended).map(t => t.id));
-    setActivePreset('recommended');
+    setProfileSelected('ultimate', ultimateTweaks.filter(t => t.recommended).map(t => t.id));
+    setProfilePreset('ultimate', 'recommended');
   };
 
   const handlePresetAggressive = () => {
-    setSelectedTweaks(ultimateTweaks.map(t => t.id));
-    setActivePreset('aggressive');
+    setProfileSelected('ultimate', ultimateTweaks.map(t => t.id));
+    setProfilePreset('ultimate', 'aggressive');
   };
 
   const handlePresetReset = () => {
-    setSelectedTweaks([]);
-    setActivePreset('reset');
+    setProfileSelected('ultimate', []);
+    setProfilePreset('ultimate', 'reset');
   };
 
   const handleApplyChanges = () => {
@@ -64,7 +70,8 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   };
 
   const riskOrder: Record<Tweak['risk'], number> = { safe: 0, moderate: 1, aggressive: 2 };
-  const activeTweaks = [...(groupedTweaks[activeCategory] || [])].sort(
+  const category = categoryOrder.includes(activeCategory) ? activeCategory : (categoryOrder[0] || 'Apps');
+  const activeTweaks = [...(groupedTweaks[category] || [])].sort(
     (a, b) => riskOrder[a.risk] - riskOrder[b.risk]
   );
 
@@ -96,7 +103,7 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
                 Go Back
               </button>
             )}
-            <button className="ultimate-btn-continue" onClick={() => setAcknowledged(true)}>
+            <button className="ultimate-btn-continue" onClick={onAcknowledge}>
               I Understand, Continue
             </button>
           </div>
@@ -110,13 +117,13 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
       <div className="gamer-topbar">
         <header className="gamer-header">
           <nav className="category-tabs">
-            {categoryOrder.map(category => (
+            {categoryOrder.map(cat => (
               <button
-                key={category}
-                className={`category-tab ${activeCategory === category ? 'active' : ''}`}
-                onClick={() => setActiveCategory(category)}
+                key={cat}
+                className={`category-tab ${category === cat ? 'active' : ''}`}
+                onClick={() => setProfileCategory('ultimate', cat)}
               >
-                {categoryLabels[category] || category}
+                {categoryLabels[cat] || cat}
               </button>
             ))}
           </nav>

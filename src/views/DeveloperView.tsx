@@ -1,12 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { developerTweaks } from '../data/developerTweaks';
 import type { Tweak } from '../data/gamerTweaks';
 import { useTweakRunner } from '../hooks/useTweakRunner';
+import { useSession } from '../context/SessionContext';
 import './GamerView.css';
 
 const DeveloperView: React.FC = () => {
-  const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const {
+    developer,
+    setProfileSelected,
+    setProfilePreset,
+    setProfileCategory,
+  } = useSession();
+  const { selected: selectedTweaks, preset: activePreset, category: activeCategory } = developer;
   const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
 
   const categoryOrder = ['Apps', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
@@ -14,7 +20,6 @@ const DeveloperView: React.FC = () => {
     'Scheduled Tasks': 'S Tasks',
     'Developer Tools': 'D Tools',
   };
-  const [activeCategory, setActiveCategory] = useState<string>('Apps');
 
   const groupedTweaks = useMemo(() => {
     return developerTweaks.reduce((acc, tweak) => {
@@ -24,25 +29,25 @@ const DeveloperView: React.FC = () => {
   }, []);
 
   const toggleTweak = (id: string) => {
-    setActivePreset(null);
-    setSelectedTweaks(prev =>
+    setProfilePreset('developer', null);
+    setProfileSelected('developer', prev =>
       prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
     );
   };
 
   const handlePresetRecommended = () => {
-    setSelectedTweaks(developerTweaks.filter(t => t.recommended).map(t => t.id));
-    setActivePreset('recommended');
+    setProfileSelected('developer', developerTweaks.filter(t => t.recommended).map(t => t.id));
+    setProfilePreset('developer', 'recommended');
   };
 
   const handlePresetAggressive = () => {
-    setSelectedTweaks(developerTweaks.map(t => t.id));
-    setActivePreset('aggressive');
+    setProfileSelected('developer', developerTweaks.map(t => t.id));
+    setProfilePreset('developer', 'aggressive');
   };
 
   const handlePresetReset = () => {
-    setSelectedTweaks([]);
-    setActivePreset('reset');
+    setProfileSelected('developer', []);
+    setProfilePreset('developer', 'reset');
   };
 
   const handleApplyChanges = () => {
@@ -77,7 +82,7 @@ const DeveloperView: React.FC = () => {
               <button
                 key={category}
                 className={`category-tab ${activeCategory === category ? 'active' : ''}`}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => setProfileCategory('developer', category)}
               >
                 {categoryLabels[category] || category}
               </button>

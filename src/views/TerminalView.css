@@ -28,22 +28,6 @@
 
 .terminal-view-pulse.active {
   background: #3b82f6;
-  animation: terminalHeartbeat 1.4s ease-in-out infinite;
-}
-
-@keyframes terminalHeartbeat {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.65);
-  }
-  40% {
-    transform: scale(1.35);
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
 }
 
 .terminal-view-title {
@@ -54,14 +38,7 @@
 }
 
 .terminal-view-title.is-live {
-  color: #93c5fd;
-  text-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-  animation: titlePulse 1.4s ease-in-out infinite;
-}
-
-@keyframes titlePulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  color: #3b82f6;
 }
 
 .terminal-view-summary {
@@ -71,17 +48,19 @@
   font-weight: 600;
 }
 
-.terminal-view-lead {
-  margin: 0 0 1rem;
-  color: #888;
-  font-size: 0.9rem;
-  max-width: 640px;
-  line-height: 1.5;
-}
-
 .terminal-view-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.terminal-progress {
+  color: #93c5fd;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 .terminal-clear-btn {
@@ -103,6 +82,68 @@
 .terminal-clear-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.terminal-restart-prompt {
+  margin-bottom: 1rem;
+}
+
+.terminal-restart-card {
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  background: #0c0c0c;
+  padding: 1.15rem 1.25rem;
+  max-width: 520px;
+}
+
+.terminal-restart-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.terminal-restart-lead {
+  margin: 0 0 1rem;
+  color: #9ca3af;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.terminal-restart-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.terminal-restart-later,
+.terminal-restart-now {
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.terminal-restart-later {
+  border: 1px solid #333;
+  background: #161616;
+  color: #d1d5db;
+}
+
+.terminal-restart-later:hover {
+  border-color: #444;
+  color: #fff;
+}
+
+.terminal-restart-now {
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+}
+
+.terminal-restart-now:hover {
+  background: #2563eb;
 }
 
 .terminal-view-body {
