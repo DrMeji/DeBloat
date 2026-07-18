@@ -80,10 +80,10 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
             leave your PC less secure or less stable.
           </p>
           <ul className="ultimate-warning-list">
-            <li>Can <strong>disable Microsoft Defender, Firewall, SmartScreen, and UAC</strong>.</li>
-            <li>Can <strong>remove Xbox, Edge, Bing Search, and OneDrive completely</strong>.</li>
-            <li>Can <strong>permanently disable Windows Update</strong>.</li>
-            <li>Some Developer options (WSL / Hyper-V) may fail inside a VirtualBox VM.</li>
+            <li>Can <strong>completely disable Defender, Firewall, SmartScreen, and UAC</strong> (reboot after applying).</li>
+            <li>Can <strong>force-remove Xbox, Edge, Bing Search, and OneDrive</strong>.</li>
+            <li>Can <strong>permanently disable Windows Update</strong> and extra background services.</li>
+            <li>Some Developer options (WSL / Hyper-V) are skipped inside a VirtualBox VM.</li>
           </ul>
           <p className="ultimate-warning-note">
             Nothing is applied automatically. Every option starts off, and the danger
