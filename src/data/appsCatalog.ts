@@ -67,6 +67,9 @@ export const appIconSlugs: Record<string, string> = {
   // Communications
   discord: 'discord',
   element: 'element',
+  guilded: 'guilded',
+  jitsi: 'jitsi',
+  mumble: 'mumble',
   'proton-mail': 'protonmail',
   qtox: 'qtox',
   signal: 'signal',
@@ -84,6 +87,8 @@ export const appIconSlugs: Record<string, string> = {
   'claude-code': 'claude',
   cmake: 'cmake',
   codex: 'openai',
+  dbeaver: 'dbeaver',
+  docker: 'docker',
   git: 'git',
   'github-desktop': 'github',
   go: 'go',
@@ -93,6 +98,7 @@ export const appIconSlugs: Record<string, string> = {
   nodejs: 'nodedotjs',
   'nodejs-lts': 'nodedotjs',
   pnpm: 'pnpm',
+  postman: 'postman',
   python3: 'python',
   ruby: 'ruby',
   rust: 'rust',
@@ -103,12 +109,14 @@ export const appIconSlugs: Record<string, string> = {
   zed: 'zedindustries',
 
   // Games
+  'battle-net': 'battledotnet',
   'ea-app': 'ea',
   'epic-games': 'epicgames',
   'geforce-now': 'nvidia',
   'gog-galaxy': 'gogdotcom',
   itch: 'itchdotio',
   modrinth: 'modrinth',
+  'riot-games': 'riotgames',
   steam: 'steam',
   'ubisoft-connect': 'ubisoft',
 
@@ -130,6 +138,7 @@ export const appIconSlugs: Record<string, string> = {
   autohotkey: 'autohotkey',
   bitwarden: 'bitwarden',
   dropbox: 'dropbox',
+  etcher: 'balena',
   'google-drive': 'googledrive',
   keepassxc: 'keepassxc',
   'proton-drive': 'proton',
@@ -137,15 +146,20 @@ export const appIconSlugs: Record<string, string> = {
   qbittorrent: 'qbittorrent',
   teamviewer: 'teamviewer',
   virtualbox: 'virtualbox',
+  windirstat: 'windirstat',
 
   // Pro Tools
+  heidisql: 'mariadb',
+  mobaxterm: 'mobaxterm',
   'mullvad-vpn': 'mullvad',
   'proton-vpn': 'protonvpn',
   wireshark: 'wireshark',
   wireguard: 'wireguard',
 
   // Microsoft Tools
+  'azure-cli': 'microsoftazure',
   onedrive: 'microsoftonedrive',
+  wsl: 'gnubash',
 
   // Selfhosted
   'jellyfin-media-player': 'jellyfin',
@@ -154,6 +168,8 @@ export const appIconSlugs: Record<string, string> = {
   'plex-media-server': 'plex',
   'plex-desktop': 'plex',
   'nextcloud-desktop': 'nextcloud',
+  syncthing: 'syncthing',
+  tailscale: 'tailscale',
 };
 
 // Second fallback: real (multi-color) logos pulled from each app's own website
@@ -172,6 +188,9 @@ export const appIconUrls: Record<string, string> = {
   teams: 'teams.microsoft.com',
   betterbird: 'betterbird.eu',
   vesktop: 'github.com/Vencord/Vesktop',
+  guilded: 'guilded.gg',
+  mumble: 'mumble.info',
+  jitsi: 'meet.jit.si',
 
   // Development
   cursor: 'cursor.com',
@@ -183,6 +202,9 @@ export const appIconUrls: Record<string, string> = {
   'corretto-25': 'aws.amazon.com/corretto',
   'corretto-8': 'aws.amazon.com/corretto',
   uv: 'astral.sh',
+  docker: 'docker.com',
+  postman: 'postman.com',
+  dbeaver: 'dbeaver.io',
 
   // Games
   'geforce-now': 'nvidia.com/geforce-now',
@@ -190,6 +212,8 @@ export const appIconUrls: Record<string, string> = {
   heroic: 'heroicgameslauncher.com',
   playnite: 'playnite.link',
   'prism-launcher': 'prismlauncher.org',
+  'riot-games': 'riotgames.com',
+  'battle-net': 'battle.net',
 
   // Multimedia
   '7zip': '7-zip.org',
@@ -214,6 +238,8 @@ export const appIconUrls: Record<string, string> = {
   peazip: 'peazip.github.io',
   nanazip: 'github.com/M2Team/NanaZip',
   files: 'files.community',
+  windirstat: 'windirstat.net',
+  etcher: 'etcher.balena.io',
 
   // Pro Tools
   'cpu-z': 'cpuid.com',
@@ -222,17 +248,24 @@ export const appIconUrls: Record<string, string> = {
   nmap: 'nmap.org',
   ventoy: 'ventoy.net',
   winscp: 'winscp.net',
+  mobaxterm: 'mobaxterm.mobatek.net',
+  heidisql: 'heidisql.com',
 
   // Microsoft Tools
   powertoys: 'learn.microsoft.com/windows/powertoys',
   'windows-terminal': 'github.com/microsoft/terminal',
   powershell: 'github.com/PowerShell/PowerShell',
+  'azure-cli': 'learn.microsoft.com/cli/azure',
+  wsl: 'learn.microsoft.com/windows/wsl',
+  'sysinternals-suite': 'learn.microsoft.com/sysinternals',
 
   // Selfhosted
   localsend: 'localsend.org',
   netbird: 'netbird.io',
   sunshine: 'github.com/LizardByte/Sunshine',
   moonlight: 'moonlight-stream.org',
+  syncthing: 'syncthing.net',
+  tailscale: 'tailscale.com',
 };
 
 export const appsCatalog: AppItem[] = [
@@ -276,6 +309,9 @@ export const appsCatalog: AppItem[] = [
   { id: 'viber', name: 'Viber', category: 'Communications', winget: 'Viber.Viber' },
   { id: 'whatsapp', name: 'WhatsApp Desktop', category: 'Communications', winget: 'WhatsApp.WhatsApp' },
   { id: 'zoom', name: 'Zoom', category: 'Communications', winget: 'Zoom.Zoom' },
+  { id: 'guilded', name: 'Guilded', category: 'Communications', winget: 'Guilded.Guilded' },
+  { id: 'mumble', name: 'Mumble', category: 'Communications', winget: 'Mumble.Mumble.Client' },
+  { id: 'jitsi', name: 'Jitsi Meet', category: 'Communications', winget: 'Jitsi.Meet' },
 
   // ============================================================
   //  DEVELOPMENT
@@ -313,6 +349,9 @@ export const appsCatalog: AppItem[] = [
   { id: 'vscodium', name: 'VS Codium', category: 'Development', winget: 'VSCodium.VSCodium' },
   { id: 'yarn', name: 'Yarn', category: 'Development', winget: 'Yarn.Yarn' },
   { id: 'zed', name: 'Zed', category: 'Development', winget: 'Zed.Zed' },
+  { id: 'docker', name: 'Docker Desktop', category: 'Development', winget: 'Docker.DockerDesktop' },
+  { id: 'postman', name: 'Postman', category: 'Development', winget: 'Postman.Postman' },
+  { id: 'dbeaver', name: 'DBeaver Community', category: 'Development', winget: 'DBeaver.DBeaver.Community' },
 
   // ============================================================
   //  GAMES
@@ -331,6 +370,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'steam', name: 'Steam', category: 'Games', winget: 'Valve.Steam', downloadUrl: 'https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe', installer: 'exe', installerArgs: '/S' },
   { id: 'ubisoft-connect', name: 'Ubisoft Connect', category: 'Games', winget: 'Ubisoft.Connect' },
   { id: 'virtual-desktop-streamer', name: 'Virtual Desktop Streamer', category: 'Games', winget: 'VirtualDesktop.Streamer' },
+  { id: 'riot-games', name: 'Riot Games', category: 'Games', winget: 'RiotGames.LeagueOfLegends.NA' },
+  { id: 'battle-net', name: 'Battle.net', category: 'Games', winget: 'Blizzard.BattleNet' },
 
   // ============================================================
   //  MULTIMEDIA
@@ -417,6 +458,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'wise-program-uninstaller', name: 'Wise Program Uninstaller', category: 'Utilities', winget: 'WiseCleaner.WiseProgramUninstaller' },
   { id: 'wiztree', name: 'WizTree', category: 'Utilities', winget: 'AntibodySoftware.WizTree' },
   { id: 'hxd', name: 'HxD Hex Editor', category: 'Utilities', winget: 'MHNexus.HxD' },
+  { id: 'windirstat', name: 'WinDirStat', category: 'Utilities', winget: 'WinDirStat.WinDirStat' },
+  { id: 'etcher', name: 'balenaEtcher', category: 'Utilities', winget: 'Balena.Etcher' },
 
   // ============================================================
   //  PRO TOOLS
@@ -439,6 +482,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'winscp', name: 'WinSCP', category: 'Pro Tools', winget: 'WinSCP.WinSCP' },
   { id: 'wireguard', name: 'WireGuard', category: 'Pro Tools', winget: 'WireGuard.WireGuard' },
   { id: 'wireshark', name: 'Wireshark', category: 'Pro Tools', winget: 'WiresharkFoundation.Wireshark' },
+  { id: 'mobaxterm', name: 'MobaXterm', category: 'Pro Tools', winget: 'Mobatek.MobaXterm' },
+  { id: 'heidisql', name: 'HeidiSQL', category: 'Pro Tools', winget: 'HeidiSQL.HeidiSQL' },
 
   // ============================================================
   //  MICROSOFT TOOLS
@@ -461,6 +506,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'windows-terminal', name: 'Windows Terminal', category: 'Microsoft Tools', winget: 'Microsoft.WindowsTerminal' },
   { id: 'vcredist-32', name: 'Visual C++ 2015-2022 32-bit', category: 'Microsoft Tools', winget: 'Microsoft.VCRedist.2015+.x86' },
   { id: 'vcredist-64', name: 'Visual C++ 2015-2022 64-bit', category: 'Microsoft Tools', winget: 'Microsoft.VCRedist.2015+.x64' },
+  { id: 'azure-cli', name: 'Azure CLI', category: 'Microsoft Tools', winget: 'Microsoft.AzureCLI' },
+  { id: 'wsl', name: 'Windows Subsystem for Linux', category: 'Microsoft Tools', winget: 'Microsoft.WSL' },
 
   // ============================================================
   //  SELFHOSTED
@@ -475,4 +522,6 @@ export const appsCatalog: AppItem[] = [
   { id: 'plex-media-server', name: 'Plex Media Server', category: 'Selfhosted', winget: 'Plex.PlexMediaServer' },
   { id: 'plex-desktop', name: 'Plex Desktop', category: 'Selfhosted', winget: 'Plex.Plex' },
   { id: 'sunshine', name: 'Sunshine/GameStream Server', category: 'Selfhosted', winget: 'LizardByte.Sunshine' },
+  { id: 'syncthing', name: 'Syncthing', category: 'Selfhosted', winget: 'Syncthing.Syncthing' },
+  { id: 'tailscale', name: 'Tailscale', category: 'Selfhosted', winget: 'Tailscale.Tailscale' },
 ];
