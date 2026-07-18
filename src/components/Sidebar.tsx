@@ -13,6 +13,7 @@ const menuItems = [
   { id: 'gamer', name: 'Gamer', disabled: false },
   { id: 'developer', name: 'Developer', disabled: false },
   { id: 'ultimate', name: 'Ultimate', disabled: false },
+  { id: 'tunes', name: 'Tunes', disabled: false },
   { id: 'apps', name: 'Apps', disabled: false },
   { id: 'terminal', name: 'Terminal', disabled: false },
   { id: 'settings', name: 'Settings', disabled: true },

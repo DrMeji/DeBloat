@@ -10,6 +10,7 @@ import { SessionProvider, type RestorePointStatus } from './context/SessionConte
 import GamerView from './views/GamerView';
 import DeveloperView from './views/DeveloperView';
 import UltimateView from './views/UltimateView';
+import TunesView from './views/TunesView';
 import AppsView from './views/AppsView';
 import TerminalView from './views/TerminalView';
 
@@ -42,6 +43,8 @@ function AppShell({
             onAcknowledge={() => setUltimateAcknowledged(true)}
           />
         );
+      case 'tunes':
+        return <TunesView />;
       case 'apps':
         return <AppsView onNavigateToTerminal={() => setActiveView('terminal')} />;
       case 'terminal':

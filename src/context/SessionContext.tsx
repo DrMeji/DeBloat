@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import type { AppCategory } from '../data/appsCatalog';
 import type { Tweak } from '../data/gamerTweaks';
 
-type ProfileKey = 'gamer' | 'developer' | 'ultimate';
+type ProfileKey = 'gamer' | 'developer' | 'ultimate' | 'tunes';
 
 export type RestorePointStatus = 'none' | 'created' | 'skipped';
 
@@ -16,6 +16,7 @@ type SessionContextValue = {
   gamer: ProfileSlice;
   developer: ProfileSlice;
   ultimate: ProfileSlice;
+  tunes: ProfileSlice;
   setProfileSelected: (key: ProfileKey, ids: string[] | ((prev: string[]) => string[])) => void;
   setProfilePreset: (key: ProfileKey, preset: string | null) => void;
   setProfileCategory: (key: ProfileKey, category: string) => void;
@@ -62,6 +63,7 @@ export function SessionProvider({
   const [gamer, setGamer] = useState<ProfileSlice>(() => defaultProfile('Apps'));
   const [developer, setDeveloper] = useState<ProfileSlice>(() => defaultProfile('Apps'));
   const [ultimate, setUltimate] = useState<ProfileSlice>(() => defaultProfile('Apps'));
+  const [tunes, setTunes] = useState<ProfileSlice>(() => defaultProfile('Appearance'));
 
   const [appsSelected, setAppsSelected] = useState<string[]>([]);
   const [appsInstalled, setAppsInstalled] = useState<string[]>([]);
@@ -76,6 +78,7 @@ export function SessionProvider({
   const setterFor = useCallback((key: ProfileKey) => {
     if (key === 'gamer') return setGamer;
     if (key === 'developer') return setDeveloper;
+    if (key === 'tunes') return setTunes;
     return setUltimate;
   }, []);
 
@@ -125,6 +128,7 @@ export function SessionProvider({
     setGamer(defaultProfile('Apps'));
     setDeveloper(defaultProfile('Apps'));
     setUltimate(defaultProfile('Apps'));
+    setTunes(defaultProfile('Appearance'));
     setAppsSelected([]);
     setAppsInstalled([]);
     setAppsFailed([]);
@@ -140,6 +144,7 @@ export function SessionProvider({
       gamer,
       developer,
       ultimate,
+      tunes,
       setProfileSelected,
       setProfilePreset,
       setProfileCategory,
@@ -167,6 +172,7 @@ export function SessionProvider({
       gamer,
       developer,
       ultimate,
+      tunes,
       setProfileSelected,
       setProfilePreset,
       setProfileCategory,
