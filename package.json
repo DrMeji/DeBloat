@@ -30,6 +30,7 @@
     "concurrently": "^8.2.2",
     "electron": "^29.1.0",
     "electron-builder": "^24.13.3",
+    "rcedit": "^5.0.2",
     "typescript": "^5.3.3",
     "vite": "^5.1.4",
     "vite-plugin-electron": "^1.1.0",
@@ -56,6 +57,7 @@
       }
     ],
     "icon": "build/icon.ico",
+    "afterPack": "build/afterPack.cjs",
     "win": {
       "icon": "build/icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
