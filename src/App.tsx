@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import './App.css';
 import { Welcome } from './components/Welcome';
-import { RestorePrompt } from './components/RestorePrompt';
+import { RestorePrompt, type RestorePromptResult } from './components/RestorePrompt';
+import { RestoreGateModal } from './components/RestoreGateModal';
 import { Sidebar } from './components/Sidebar';
 import { WindowControls } from './components/WindowControls';
 import { TerminalProvider } from './context/TerminalContext';
-import { SessionProvider } from './context/SessionContext';
+import { SessionProvider, type RestorePointStatus } from './context/SessionContext';
 import GamerView from './views/GamerView';
 import DeveloperView from './views/DeveloperView';
 import UltimateView from './views/UltimateView';
@@ -58,6 +59,7 @@ function AppShell({
           {renderView()}
         </div>
       </main>
+      <RestoreGateModal />
     </div>
   );
 }
@@ -67,17 +69,25 @@ function App() {
   const [activeView, setActiveView] = useState('gamer');
   const [ultimateAcknowledged, setUltimateAcknowledged] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
+  const [restoreSeed, setRestoreSeed] = useState<RestorePointStatus>('none');
 
   const handleLogout = () => {
     setActiveView('gamer');
     setUltimateAcknowledged(false);
+    setRestoreSeed('none');
     setSessionKey(k => k + 1);
     setPhase('welcome');
+  };
+
+  const handleRestoreDone = (result: RestorePromptResult) => {
+    setRestoreSeed(result === 'created' ? 'created' : 'skipped');
+    setPhase('app');
   };
 
   if (phase === 'welcome') {
     return (
       <>
+        <div className="titlebar-drag" aria-hidden />
         <WindowControls />
         <Welcome onContinue={() => setPhase('restore')} />
       </>
@@ -87,17 +97,19 @@ function App() {
   if (phase === 'restore') {
     return (
       <>
+        <div className="titlebar-drag" aria-hidden />
         <WindowControls />
-        <RestorePrompt onDone={() => setPhase('app')} />
+        <RestorePrompt onDone={handleRestoreDone} />
       </>
     );
   }
 
   return (
     <>
+      <div className="titlebar-drag" aria-hidden />
       <WindowControls />
       <TerminalProvider key={`term-${sessionKey}`}>
-        <SessionProvider key={`sess-${sessionKey}`}>
+        <SessionProvider key={`sess-${sessionKey}`} initialRestoreStatus={restoreSeed}>
           <AppShell
             activeView={activeView}
             setActiveView={setActiveView}

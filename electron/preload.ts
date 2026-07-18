@@ -7,7 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('apply-tweaks', tweaks, mode),
   installApps: (apps: unknown[]) => ipcRenderer.invoke('install-apps', apps),
   checkInstalledApps: (apps: unknown[]) => ipcRenderer.invoke('check-installed-apps', apps),
-  createRestorePoint: () => ipcRenderer.invoke('create-restore-point'),
+  createRestorePoint: (description?: string) =>
+    ipcRenderer.invoke('create-restore-point', description),
   restartComputer: () => ipcRenderer.invoke('restart-computer'),
   onTweakLog: (callback: (payload: unknown) => void) => {
     const listener = (_event: unknown, payload: unknown) => callback(payload);

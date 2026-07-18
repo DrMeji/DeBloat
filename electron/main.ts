@@ -46,7 +46,7 @@ function showWindow() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400,
+    width: 1500,
     height: 900,
     resizable: false,
     maximizable: false,
@@ -729,15 +729,27 @@ ipcMain.handle('install-apps', async (event, apps: {
   return { results, successCount, failCount, skipCount, total };
 });
 
-ipcMain.handle('create-restore-point', async () => {
-  // Create system restore point
-  const { exec } = require('child_process');
-  const command = 'powershell.exe -Command "Checkpoint-Computer -Description \'DeBloat Optimization\' -RestorePointType \'MODIFY_SETTINGS\'"';
-  
+ipcMain.handle('create-restore-point', async (_event, description?: string) => {
+  const { execFile } = require('child_process');
+  const label = String(description || `DeBloat ${new Date().toLocaleString()}`).slice(0, 240);
+  const script =
+    `$ErrorActionPreference='Stop'; ` +
+    `Checkpoint-Computer -Description '${label.replace(/'/g, "''")}' -RestorePointType 'MODIFY_SETTINGS'; ` +
+    `Write-Output 'Restore point created'; ` +
+    `exit 0`;
   return new Promise((resolve) => {
-    exec(command, (error: Error | null) => {
-      resolve({ success: !error, error: error?.message });
-    });
+    execFile(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
+      { windowsHide: true, timeout: 180000 },
+      (error: Error | null, _stdout: string, stderr: string) => {
+        if (error) {
+          resolve({ success: false, error: (stderr || error.message || 'Failed').trim().slice(0, 400) });
+        } else {
+          resolve({ success: true, description: label });
+        }
+      }
+    );
   });
 });
 

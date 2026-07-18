@@ -9,14 +9,13 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-// A → Z
 const menuItems = [
-  { id: 'apps', name: 'Apps', disabled: false },
-  { id: 'developer', name: 'Developer', disabled: false },
   { id: 'gamer', name: 'Gamer', disabled: false },
-  { id: 'terminal', name: 'Live Terminal', disabled: false },
-  { id: 'settings', name: 'Settings', disabled: true },
+  { id: 'developer', name: 'Developer', disabled: false },
   { id: 'ultimate', name: 'Ultimate', disabled: false },
+  { id: 'apps', name: 'Apps', disabled: false },
+  { id: 'terminal', name: 'Terminal', disabled: false },
+  { id: 'settings', name: 'Settings', disabled: true },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, onLogout }) => {

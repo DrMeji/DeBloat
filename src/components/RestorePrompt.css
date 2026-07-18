@@ -124,3 +124,30 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.restore-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  padding: 2rem;
+}
+
+.restore-gate-card {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.restore-gate-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin: 0 auto 1.25rem;
+  max-width: 92%;
+}
+
+.restore-lead strong {
+  color: #e8e8e8;
+  font-weight: 600;
+}

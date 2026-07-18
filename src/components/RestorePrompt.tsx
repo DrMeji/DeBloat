@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { buildRestorePointLabel } from '../context/SessionContext';
 import './RestorePrompt.css';
 
+export type RestorePromptResult = 'created' | 'skipped';
+
 interface RestorePromptProps {
-  onDone: () => void;
+  onDone: (result: RestorePromptResult) => void;
 }
 
 type Status = 'idle' | 'creating' | 'success' | 'error';
@@ -13,22 +16,25 @@ const electronAPI = (window as any).electronAPI;
 export const RestorePrompt: React.FC<RestorePromptProps> = ({ onDone }) => {
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [createdLabel, setCreatedLabel] = useState<string>('');
 
   const createRestorePoint = async () => {
     setStatus('creating');
     setErrorMsg('');
+    const label = buildRestorePointLabel();
     try {
       if (electronAPI?.createRestorePoint) {
-        const result = await electronAPI.createRestorePoint();
+        const result = await electronAPI.createRestorePoint(label);
         if (result?.success) {
+          setCreatedLabel(label);
           setStatus('success');
         } else {
           setErrorMsg(result?.error || 'Windows could not create the restore point.');
           setStatus('error');
         }
       } else {
-        // Running in a browser (no Electron bridge), simulate for preview.
-        await new Promise(res => setTimeout(res, 1500));
+        await new Promise(res => setTimeout(res, 800));
+        setCreatedLabel(label);
         setStatus('success');
       }
     } catch (err) {
@@ -49,44 +55,44 @@ export const RestorePrompt: React.FC<RestorePromptProps> = ({ onDone }) => {
           <>
             <h1 className="restore-title">Restore Point Created</h1>
             <p className="restore-lead">
-              A system restore point was saved. If anything ever goes wrong, you can roll
-              Windows back to how it is right now.
+              Saved as <strong>{createdLabel}</strong>. If a tweak causes problems, roll
+              Windows back to this point from Settings → System → Recovery.
             </p>
             <div className="restore-actions">
-              <button className="restore-btn-primary" onClick={onDone}>Continue</button>
+              <button className="restore-btn-primary" onClick={() => onDone('created')}>Continue</button>
             </div>
           </>
         ) : status === 'error' ? (
           <>
             <h1 className="restore-title">Couldn’t Create Restore Point</h1>
-            <p className="restore-lead">
-              {errorMsg}
-            </p>
+            <p className="restore-lead">{errorMsg}</p>
             <p className="restore-note">
-              This usually means System Restore is turned off, or the app isn’t running as
-              Administrator. You can try again, or continue without one (not recommended).
+              System Restore may be off, or DeBloat isn’t running as Administrator.
+              You can try again. Skipping is allowed, but Apply will ask you to create
+              one before any tweaks run.
             </p>
             <div className="restore-actions">
-              <button className="restore-btn-ghost" onClick={onDone}>Continue Anyway</button>
-              <button className="restore-btn-primary" onClick={createRestorePoint}>Try Again</button>
+              <button className="restore-btn-ghost" onClick={() => onDone('skipped')}>Skip for Now</button>
+              <button className="restore-btn-primary" onClick={() => void createRestorePoint()}>Try Again</button>
             </div>
           </>
         ) : (
           <>
             <h1 className="restore-title">Create a Restore Point</h1>
             <p className="restore-lead">
-              Before making any changes, it’s strongly recommended to create a Windows
-              System Restore point. DeBloat will create one for you, no manual steps needed.
+              Before you apply tweaks, create a Windows System Restore point so you can
+              undo system changes if something goes wrong.
             </p>
             <p className="restore-note">
-              If a tweak ever causes a problem, you can restore Windows back to this exact
-              point from Settings → Recovery.
+              The restore point is named with today’s date and time (for example,
+              “DeBloat Jul 18, 2026, 1:09:00 AM”). You can restore to it later from
+              Settings → System → Recovery.
             </p>
             <div className="restore-actions">
-              <button className="restore-btn-ghost" onClick={onDone} disabled={status === 'creating'}>
+              <button className="restore-btn-ghost" onClick={() => onDone('skipped')} disabled={status === 'creating'}>
                 Skip
               </button>
-              <button className="restore-btn-primary" onClick={createRestorePoint} disabled={status === 'creating'}>
+              <button className="restore-btn-primary" onClick={() => void createRestorePoint()} disabled={status === 'creating'}>
                 {status === 'creating' ? 'Creating…' : 'Create Restore Point'}
               </button>
             </div>

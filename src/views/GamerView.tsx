@@ -10,6 +10,7 @@ const GamerView: React.FC = () => {
     setProfileSelected,
     setProfilePreset,
     setProfileCategory,
+    requestApply,
   } = useSession();
   const { selected: selectedTweaks, preset: activePreset, category: activeCategory } = gamer;
   const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
@@ -46,7 +47,8 @@ const GamerView: React.FC = () => {
   };
 
   const handleApplyChanges = () => {
-    void runTweaks(gamerTweaks.filter(t => selectedTweaks.includes(t.id)));
+    const toApply = gamerTweaks.filter(t => selectedTweaks.includes(t.id));
+    if (requestApply(toApply)) void runTweaks(toApply);
   };
 
   const getRiskColor = (risk: Tweak['risk']) => {
@@ -64,78 +66,92 @@ const GamerView: React.FC = () => {
   return (
     <div className="gamer-view">
       <div className="gamer-topbar">
-        <header className="gamer-header">
-          <nav className="category-tabs">
+        <div className="gamer-toolbar-row">
+          <header className="gamer-toolbar gamer-toolbar-left">
             {categoryOrder.map(category => (
               <button
                 key={category}
-                className={`category-tab ${activeCategory === category ? 'active' : ''}`}
+                type="button"
+                className={`gamer-toolbar-tab ${activeCategory === category ? 'active' : ''}`}
                 onClick={() => setProfileCategory('gamer', category)}
               >
                 {category}
               </button>
             ))}
-          </nav>
 
-          <div className="header-actions">
-            <div className="preset-group">
-              <button
-                className={`preset-tab ${activePreset === 'recommended' ? 'active' : ''}`}
-                onClick={handlePresetRecommended}
-              >
-                Recommended
-              </button>
-              <button
-                className={`preset-tab ${activePreset === 'aggressive' ? 'active' : ''}`}
-                onClick={handlePresetAggressive}
-              >
-                Aggressive
-              </button>
-              <button
-                className={`preset-tab ${activePreset === 'reset' ? 'active' : ''}`}
-                onClick={handlePresetReset}
-              >
-                Reset
-              </button>
-            </div>
-            <span className="selected-count">{selectedTweaks.length}</span>
-            <button className="apply-btn" onClick={handleApplyChanges} disabled={selectedTweaks.length === 0 || isApplying}>
+            <span className="gamer-toolbar-divider" aria-hidden />
+
+            <button
+              type="button"
+              className={`gamer-toolbar-tab preset-recommended ${activePreset === 'recommended' ? 'active' : ''}`}
+              onClick={handlePresetRecommended}
+            >
+              Recommended
+            </button>
+            <button
+              type="button"
+              className={`gamer-toolbar-tab preset-aggressive ${activePreset === 'aggressive' ? 'active' : ''}`}
+              onClick={handlePresetAggressive}
+            >
+              Aggressive
+            </button>
+            <button
+              type="button"
+              className={`gamer-toolbar-tab preset-reset ${activePreset === 'reset' ? 'active' : ''}`}
+              onClick={handlePresetReset}
+            >
+              Reset
+            </button>
+          </header>
+
+          <div className="gamer-toolbar gamer-toolbar-right">
+            <span className="gamer-toolbar-count">{selectedTweaks.length}</span>
+            <button
+              type="button"
+              className="gamer-toolbar-apply"
+              onClick={handleApplyChanges}
+              disabled={selectedTweaks.length === 0 || isApplying}
+            >
               {isApplying ? 'Applying…' : 'Apply Changes'}
             </button>
           </div>
-        </header>
+        </div>
       </div>
 
-      <div className="tweaks-container">
-        {activeTweaks.map(tweak => (
-          <div key={tweak.id} className="tweak-item">
-            <div className="tweak-info">
-              <span className="tweak-name">{tweak.name}</span>
-              <p className="tweak-description">{tweak.description}</p>
-            </div>
-            <div className="tweak-controls">
-              <span className="risk-badge" style={{ backgroundColor: getRiskColor(tweak.risk) + '20', color: getRiskColor(tweak.risk) }}>
-                {tweak.risk}
-              </span>
-              {tweakStatuses[tweak.id] && (
-                <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
-                  {tweakStatuses[tweak.id] === 'applied' ? '✓'
-                    : tweakStatuses[tweak.id] === 'failed' ? '✗'
-                    : tweakStatuses[tweak.id] === 'skipped' ? '–'
-                    : '…'}
-                </span>
-              )}
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={selectedTweaks.includes(tweak.id)}
-                  onChange={() => toggleTweak(tweak.id)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
+      <div className="gamer-panel">
+        <div className="gamer-panel-scroll">
+          <div className="tweaks-container">
+            {activeTweaks.map(tweak => (
+              <div key={tweak.id} className="tweak-item">
+                <div className="tweak-info">
+                  <span className="tweak-name">{tweak.name}</span>
+                  <p className="tweak-description">{tweak.description}</p>
+                </div>
+                <div className="tweak-controls">
+                  <span className="risk-badge" style={{ backgroundColor: getRiskColor(tweak.risk) + '20', color: getRiskColor(tweak.risk) }}>
+                    {tweak.risk}
+                  </span>
+                  {tweakStatuses[tweak.id] && (
+                    <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
+                      {tweakStatuses[tweak.id] === 'applied' ? '✓'
+                        : tweakStatuses[tweak.id] === 'failed' ? '✗'
+                        : tweakStatuses[tweak.id] === 'skipped' ? '–'
+                        : '…'}
+                    </span>
+                  )}
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={selectedTweaks.includes(tweak.id)}
+                      onChange={() => toggleTweak(tweak.id)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

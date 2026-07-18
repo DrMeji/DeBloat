@@ -1,7 +1,10 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { AppCategory } from '../data/appsCatalog';
+import type { Tweak } from '../data/gamerTweaks';
 
 type ProfileKey = 'gamer' | 'developer' | 'ultimate';
+
+export type RestorePointStatus = 'none' | 'created' | 'skipped';
 
 type ProfileSlice = {
   selected: string[];
@@ -28,6 +31,16 @@ type SessionContextValue = {
   setAppsCategory: (category: AppCategory) => void;
   setAppsScanned: (scanned: boolean) => void;
   markAppsInstalled: (ids: string[]) => void;
+
+  restorePointStatus: RestorePointStatus;
+  setRestorePointStatus: (status: RestorePointStatus) => void;
+  restoreGateOpen: boolean;
+  pendingTweaks: Tweak[] | null;
+  /** Returns true if Apply may proceed now; false if the restore gate opened instead. */
+  requestApply: (tweaks: Tweak[]) => boolean;
+  closeRestoreGate: () => void;
+  takePendingTweaks: () => Tweak[] | null;
+
   resetSession: () => void;
 };
 
@@ -39,7 +52,13 @@ const defaultProfile = (category: string): ProfileSlice => ({
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
+export function SessionProvider({
+  children,
+  initialRestoreStatus = 'none',
+}: {
+  children: React.ReactNode;
+  initialRestoreStatus?: RestorePointStatus;
+}) {
   const [gamer, setGamer] = useState<ProfileSlice>(() => defaultProfile('Apps'));
   const [developer, setDeveloper] = useState<ProfileSlice>(() => defaultProfile('Apps'));
   const [ultimate, setUltimate] = useState<ProfileSlice>(() => defaultProfile('Apps'));
@@ -49,6 +68,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [appsFailed, setAppsFailed] = useState<string[]>([]);
   const [appsCategory, setAppsCategory] = useState<AppCategory>('Browsers');
   const [appsScanned, setAppsScanned] = useState(false);
+
+  const [restorePointStatus, setRestorePointStatus] = useState<RestorePointStatus>(initialRestoreStatus);
+  const [restoreGateOpen, setRestoreGateOpen] = useState(false);
+  const [pendingTweaks, setPendingTweaks] = useState<Tweak[] | null>(null);
 
   const setterFor = useCallback((key: ProfileKey) => {
     if (key === 'gamer') return setGamer;
@@ -78,6 +101,26 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAppsSelected(prev => prev.filter(id => !ids.includes(id)));
   }, []);
 
+  const requestApply = useCallback((tweaks: Tweak[]) => {
+    if (tweaks.length === 0) return false;
+    if (restorePointStatus === 'created') return true;
+    setPendingTweaks(tweaks);
+    setRestoreGateOpen(true);
+    return false;
+  }, [restorePointStatus]);
+
+  const closeRestoreGate = useCallback(() => {
+    setRestoreGateOpen(false);
+    setPendingTweaks(null);
+  }, []);
+
+  const takePendingTweaks = useCallback(() => {
+    const tweaks = pendingTweaks;
+    setPendingTweaks(null);
+    setRestoreGateOpen(false);
+    return tweaks;
+  }, [pendingTweaks]);
+
   const resetSession = useCallback(() => {
     setGamer(defaultProfile('Apps'));
     setDeveloper(defaultProfile('Apps'));
@@ -87,6 +130,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAppsFailed([]);
     setAppsCategory('Browsers');
     setAppsScanned(false);
+    setRestorePointStatus('none');
+    setRestoreGateOpen(false);
+    setPendingTweaks(null);
   }, []);
 
   const value = useMemo(
@@ -108,6 +154,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setAppsCategory,
       setAppsScanned,
       markAppsInstalled,
+      restorePointStatus,
+      setRestorePointStatus,
+      restoreGateOpen,
+      pendingTweaks,
+      requestApply,
+      closeRestoreGate,
+      takePendingTweaks,
       resetSession,
     }),
     [
@@ -123,6 +176,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       appsCategory,
       appsScanned,
       markAppsInstalled,
+      restorePointStatus,
+      restoreGateOpen,
+      pendingTweaks,
+      requestApply,
+      closeRestoreGate,
+      takePendingTweaks,
       resetSession,
     ]
   );
@@ -134,4 +193,17 @@ export function useSession() {
   const ctx = useContext(SessionContext);
   if (!ctx) throw new Error('useSession must be used inside SessionProvider');
   return ctx;
+}
+
+/** Shared timestamp label for Windows System Restore points. */
+export function buildRestorePointLabel(date = new Date()): string {
+  const stamp = date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  return `DeBloat ${stamp}`;
 }

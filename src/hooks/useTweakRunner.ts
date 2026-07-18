@@ -1,2 +1,2 @@
-/** Re-export shared runner that writes into the Live Terminal tab. */
+/** Re-export shared runner that writes into the Terminal tab. */
 export { useTweakRunner } from '../context/TerminalContext';

@@ -16,6 +16,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-app-region: drag;
+}
+
+.sidebar-nav,
+.sidebar-footer,
+.nav-item {
+  -webkit-app-region: no-drag;
 }
 
 .sidebar-logo {
@@ -68,7 +75,7 @@
   font-weight: 700 !important;
 }
 
-/* While Apply/Install is running, dim everything except Live Terminal + Apps */
+/* While Apply/Install is running, dim everything except Terminal + Apps */
 .sidebar-nav.is-applying .nav-item:not(.nav-item-live):not([data-keep-alive]) {
   color: #2a2a2a;
   pointer-events: none;

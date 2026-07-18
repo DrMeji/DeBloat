@@ -100,76 +100,82 @@ const AppsView: React.FC<AppsViewProps> = ({ onNavigateToTerminal }) => {
   return (
     <div className="gamer-view">
       <div className="gamer-topbar">
-        <header className="gamer-header">
-          <nav className="category-tabs apps-category-tabs">
+        <div className="gamer-toolbar-row">
+          <header className="gamer-toolbar gamer-toolbar-left apps-toolbar-left">
             {appCategoryOrder.map(category => (
               <button
                 key={category}
-                className={`category-tab ${activeCategory === category ? 'active' : ''}`}
+                type="button"
+                className={`gamer-toolbar-tab ${activeCategory === category ? 'active' : ''}`}
                 onClick={() => setAppsCategory(category)}
               >
                 {appCategoryLabels[category] || category}
               </button>
             ))}
-          </nav>
+          </header>
 
-          <div className="header-actions">
-            <span className="selected-count">{selectableCount}</span>
+          <div className="gamer-toolbar gamer-toolbar-right">
+            <span className="gamer-toolbar-count">{selectableCount}</span>
             <button
-              className="apply-btn"
+              type="button"
+              className="gamer-toolbar-apply"
               onClick={() => void handleInstall()}
               disabled={selectableCount === 0 || isApplying || scanning}
             >
               {isApplying ? 'Installing…' : scanning ? 'Scanning…' : 'Install Selected'}
             </button>
           </div>
-        </header>
+        </div>
       </div>
 
-      <div className="apps-grid">
-        {activeApps.map(app => {
-          const isSelected = selected.includes(app.id);
-          const isInstalled = installed.includes(app.id);
-          const isFailed = failed.includes(app.id);
-          const sources = getIconSources(app.id);
-          const stage = iconStage[app.id] ?? 0;
-          const iconSrc = sources[stage];
-          return (
-            <button
-              key={app.id}
-              className={`app-card ${isSelected ? 'selected' : ''} ${isInstalled ? 'installed' : ''} ${isFailed ? 'failed' : ''}`}
-              onClick={() => toggleApp(app.id)}
-              disabled={isApplying || isInstalled}
-              title={
-                isInstalled
-                  ? 'Already installed'
-                  : isFailed
-                    ? 'Install failed, try again'
-                    : (app.winget || app.name)
-              }
-            >
-              <span className="app-avatar">
-                {iconSrc ? (
-                  <img
-                    className="app-logo"
-                    src={iconSrc}
-                    alt=""
-                    loading="lazy"
-                    onError={() => setIconStage(prev => ({ ...prev, [app.id]: (prev[app.id] ?? 0) + 1 }))}
-                  />
-                ) : (
-                  app.name.charAt(0)
-                )}
-              </span>
-              <span className="app-name">{app.name}</span>
-              {isInstalled ? (
-                <span className="app-status">Installed</span>
-              ) : (
-                <span className="app-dot" />
-              )}
-            </button>
-          );
-        })}
+      <div className="gamer-panel">
+        <div className="gamer-panel-scroll">
+          <div className="apps-grid">
+            {activeApps.map(app => {
+              const isSelected = selected.includes(app.id);
+              const isInstalled = installed.includes(app.id);
+              const isFailed = failed.includes(app.id);
+              const sources = getIconSources(app.id);
+              const stage = iconStage[app.id] ?? 0;
+              const iconSrc = sources[stage];
+              return (
+                <button
+                  key={app.id}
+                  className={`app-card ${isSelected ? 'selected' : ''} ${isInstalled ? 'installed' : ''} ${isFailed ? 'failed' : ''}`}
+                  onClick={() => toggleApp(app.id)}
+                  disabled={isApplying || isInstalled}
+                  title={
+                    isInstalled
+                      ? 'Already installed'
+                      : isFailed
+                        ? 'Install failed, try again'
+                        : (app.winget || app.name)
+                  }
+                >
+                  <span className="app-avatar">
+                    {iconSrc ? (
+                      <img
+                        className="app-logo"
+                        src={iconSrc}
+                        alt=""
+                        loading="lazy"
+                        onError={() => setIconStage(prev => ({ ...prev, [app.id]: (prev[app.id] ?? 0) + 1 }))}
+                      />
+                    ) : (
+                      app.name.charAt(0)
+                    )}
+                  </span>
+                  <span className="app-name">{app.name}</span>
+                  {isInstalled ? (
+                    <span className="app-status">Installed</span>
+                  ) : (
+                    <span className="app-dot" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

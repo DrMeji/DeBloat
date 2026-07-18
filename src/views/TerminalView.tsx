@@ -26,7 +26,7 @@ const TerminalView: React.FC = () => {
       <header className="terminal-view-header">
         <div className="terminal-view-title-row">
           <span className={`terminal-view-pulse ${isApplying ? 'active' : ''}`} aria-hidden />
-          <h1 className={`terminal-view-title ${isApplying ? 'is-live' : ''}`}>Live Terminal</h1>
+          <h1 className={`terminal-view-title ${isApplying ? 'is-live' : ''}`}>Terminal</h1>
           {applySummary && <span className="terminal-view-summary">{applySummary}</span>}
         </div>
         <div className="terminal-view-actions">
@@ -67,20 +67,22 @@ const TerminalView: React.FC = () => {
         </div>
       )}
 
-      <div className="terminal-view-body" ref={bodyRef}>
-        {logLines.length === 0 ? (
-          <div className="terminal-view-empty">
-            {isApplying
-              ? 'Waiting for output…'
-              : 'No activity yet. Go to Gamer, Developer, or Ultimate and hit Apply Changes.'}
-          </div>
-        ) : (
-          logLines.map(line => (
-            <div key={line.id} className={`terminal-view-line kind-${line.kind || 'info'}`}>
-              {line.text}
+      <div className="terminal-panel">
+        <div className="terminal-panel-scroll" ref={bodyRef}>
+          {logLines.length === 0 ? (
+            <div className="terminal-view-empty">
+              {isApplying
+                ? 'Waiting for output…'
+                : 'No activity yet. Go to Gamer, Developer, or Ultimate and hit Apply Changes.'}
             </div>
-          ))
-        )}
+          ) : (
+            logLines.map(line => (
+              <div key={line.id} className={`terminal-view-line kind-${line.kind || 'info'}`}>
+                {line.text}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
