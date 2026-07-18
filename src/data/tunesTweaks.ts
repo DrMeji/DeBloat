@@ -74,6 +74,30 @@ export const tunesTweaks: Tweak[] = [
       "Set-ItemProperty -Path $vx -Name VisualFXSetting -Type DWord -Value 0; " +
       "Write-Output 'Visual effects restored to Let Windows choose'; exit 0",
   },
+  {
+    id: 'tunes-hide-chat-icon',
+    name: 'Hide Chat Icon on Taskbar',
+    description: 'Removes the Microsoft Teams Chat icon from the Windows 11 taskbar.',
+    category: 'Appearance',
+    risk: 'safe',
+    recommended: true,
+    type: 'registry',
+    target: 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced',
+    value: { name: 'TaskbarMn', type: 'DWORD', data: 0 },
+    undo: { name: 'TaskbarMn', type: 'DWORD', data: 1 },
+  },
+  {
+    id: 'tunes-compact-view',
+    name: 'Use Compact View in File Explorer',
+    description: 'Reduces padding between items in File Explorer for a denser, more classic layout.',
+    category: 'Appearance',
+    risk: 'safe',
+    recommended: false,
+    type: 'registry',
+    target: 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced',
+    value: { name: 'UseCompactMode', type: 'DWORD', data: 1 },
+    undo: { name: 'UseCompactMode', type: 'DWORD', data: 0 },
+  },
 
   // ============================================================
   //  SEARCH
@@ -201,6 +225,30 @@ export const tunesTweaks: Tweak[] = [
       "@('SubscribedContent-338389Enabled','SoftLandingEnabled','SystemPaneSuggestionsEnabled') | ForEach-Object { Set-ItemProperty -Path $c -Name $_ -Type DWord -Value 1 -ErrorAction SilentlyContinue }; " +
       "Write-Output 'Tips settings restored'; exit 0",
   },
+  {
+    id: 'tunes-disable-ad-id',
+    name: 'Disable Advertising ID',
+    description: 'Prevents apps from using your advertising ID for personalized ads.',
+    category: 'Privacy',
+    risk: 'safe',
+    recommended: true,
+    type: 'registry',
+    target: 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo',
+    value: { name: 'Enabled', type: 'DWORD', data: 0 },
+    undo: { name: 'Enabled', type: 'DWORD', data: 1 },
+  },
+  {
+    id: 'tunes-disable-app-launch-tracking',
+    name: 'Disable App Launch Tracking',
+    description: 'Stops Windows from tracking app launches to personalize Start menu suggestions.',
+    category: 'Privacy',
+    risk: 'safe',
+    recommended: true,
+    type: 'registry',
+    target: 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced',
+    value: { name: 'Start_TrackProgs', type: 'DWORD', data: 0 },
+    undo: { name: 'Start_TrackProgs', type: 'DWORD', data: 1 },
+  },
 
   // ============================================================
   //  SYSTEM
@@ -278,5 +326,39 @@ export const tunesTweaks: Tweak[] = [
       "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name RotatingLockScreenOverlayEnabled -Type DWord -Value 1 -ErrorAction SilentlyContinue; " +
       "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Name DisableWindowsSpotlightFeatures -ErrorAction SilentlyContinue; " +
       "Write-Output 'Lock screen tips restored'; exit 0",
+  },
+  {
+    id: 'tunes-disable-game-bar',
+    name: 'Disable Xbox Game Bar',
+    description: 'Turns off the Xbox Game Bar. Can improve performance and prevent conflicts in some games.',
+    category: 'System',
+    risk: 'safe',
+    recommended: true,
+    type: 'command',
+    target:
+      "$ErrorActionPreference='SilentlyContinue'; " +
+      "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\GameBar' -Name ShowStartupPanel -Type DWord -Value 0 -ErrorAction SilentlyContinue; " +
+      "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Name AppCaptureEnabled -Type DWord -Value 0 -ErrorAction SilentlyContinue; " +
+      "$p='HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR'; New-Item -Path $p -Force | Out-Null; " +
+      "Set-ItemProperty -Path $p -Name AllowGameDVR -Type DWord -Value 0; " +
+      "Write-Output 'Xbox Game Bar disabled'; exit 0",
+    undo:
+      "$ErrorActionPreference='SilentlyContinue'; " +
+      "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\GameBar' -Name ShowStartupPanel -Type DWord -Value 1 -ErrorAction SilentlyContinue; " +
+      "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Name AppCaptureEnabled -Type DWord -Value 1 -ErrorAction SilentlyContinue; " +
+      "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR' -Name AllowGameDVR -ErrorAction SilentlyContinue; " +
+      "Write-Output 'Xbox Game Bar re-enabled'; exit 0",
+  },
+  {
+    id: 'tunes-disable-fast-startup',
+    name: 'Disable Fast Startup',
+    description: 'Disables hybrid shutdown. Can help prevent issues with drivers and system updates.',
+    category: 'System',
+    risk: 'moderate',
+    recommended: false,
+    type: 'registry',
+    target: 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power',
+    value: { name: 'HiberbootEnabled', type: 'DWORD', data: 0 },
+    undo: { name: 'HiberbootEnabled', type: 'DWORD', data: 1 },
   },
 ];
