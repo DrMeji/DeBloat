@@ -62,6 +62,8 @@ export const appIconSlugs: Record<string, string> = {
   'tor-browser': 'torbrowser',
   'ungoogled-chromium': 'googlechrome',
   vivaldi: 'vivaldi',
+  opera: 'opera',
+  'opera-gx': 'operagx',
   'zen-browser': 'zenbrowser',
 
   // Communications
@@ -72,12 +74,14 @@ export const appIconSlugs: Record<string, string> = {
   mumble: 'mumble',
   'proton-mail': 'protonmail',
   qtox: 'qtox',
+  session: 'session',
   signal: 'signal',
   slack: 'slack',
   telegram: 'telegram',
   thunderbird: 'thunderbird',
   viber: 'viber',
   whatsapp: 'whatsapp',
+  wire: 'wire',
   zoom: 'zoom',
   teamspeak3: 'teamspeak',
 
@@ -122,14 +126,19 @@ export const appIconSlugs: Record<string, string> = {
 
   // Multimedia
   'acrobat-reader': 'adobeacrobatreader',
+  'amazon-music': 'amazonmusic',
   audacity: 'audacity',
   blender: 'blender',
+  deezer: 'deezer',
+  freetube: 'youtube',
   gimp: 'gimp',
   handbrake: 'handbrake',
   libreoffice: 'libreoffice',
   'notepad-plus-plus': 'notepadplusplus',
   obs: 'obsstudio',
   obsidian: 'obsidian',
+  spotify: 'spotify',
+  tidal: 'tidal',
   vlc: 'vlcmediaplayer',
 
   // Utilities
@@ -140,7 +149,10 @@ export const appIconSlugs: Record<string, string> = {
   dropbox: 'dropbox',
   etcher: 'balena',
   'google-drive': 'googledrive',
+  icloud: 'icloud',
   keepassxc: 'keepassxc',
+  mega: 'mega',
+  pcloud: 'pcloud',
   'proton-drive': 'proton',
   'proton-pass': 'protonpass',
   qbittorrent: 'qbittorrent',
@@ -149,6 +161,7 @@ export const appIconSlugs: Record<string, string> = {
   windirstat: 'windirstat',
 
   // Pro Tools
+  'cloudflare-warp': 'cloudflare',
   heidisql: 'mariadb',
   mobaxterm: 'mobaxterm',
   'mullvad-vpn': 'mullvad',
@@ -183,6 +196,8 @@ export const appIconUrls: Record<string, string> = {
   duckduckgo: 'duckduckgo.com',
   waterfox: 'waterfox.net',
   'zen-browser': 'zen-browser.app',
+  opera: 'opera.com',
+  'opera-gx': 'opera.com/gx',
 
   // Communications
   teams: 'teams.microsoft.com',
@@ -191,6 +206,9 @@ export const appIconUrls: Record<string, string> = {
   guilded: 'guilded.gg',
   mumble: 'mumble.info',
   jitsi: 'meet.jit.si',
+  caprine: 'github.com/sindresorhus/caprine',
+  session: 'getsession.org',
+  wire: 'wire.com',
 
   // Development
   cursor: 'cursor.com',
@@ -224,6 +242,13 @@ export const appIconUrls: Record<string, string> = {
   irfanview: 'irfanview.com',
   imageglass: 'imageglass.org',
   aimp: 'aimp.ru',
+  spotify: 'spotify.com',
+  freetube: 'freetubeapp.io',
+  'amazon-music': 'music.amazon.com',
+  deezer: 'deezer.com',
+  tidal: 'tidal.com',
+  cider: 'cider.sh',
+  plexamp: 'plex.tv/plexamp',
 
   // Utilities
   everything: 'voidtools.com',
@@ -240,6 +265,9 @@ export const appIconUrls: Record<string, string> = {
   files: 'files.community',
   windirstat: 'windirstat.net',
   etcher: 'etcher.balena.io',
+  mega: 'mega.io',
+  pcloud: 'pcloud.com',
+  icloud: 'icloud.com',
 
   // Pro Tools
   'cpu-z': 'cpuid.com',
@@ -250,6 +278,8 @@ export const appIconUrls: Record<string, string> = {
   winscp: 'winscp.net',
   mobaxterm: 'mobaxterm.mobatek.net',
   heidisql: 'heidisql.com',
+  'cloudflare-warp': 'one.one.one.one',
+  cloudflared: 'developers.cloudflare.com/cloudflare-one',
 
   // Microsoft Tools
   powertoys: 'learn.microsoft.com/windows/powertoys',
@@ -288,6 +318,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'vivaldi', name: 'Vivaldi', category: 'Browsers', winget: 'Vivaldi.Vivaldi' },
   { id: 'waterfox', name: 'Waterfox', category: 'Browsers', winget: 'Waterfox.Waterfox' },
   { id: 'zen-browser', name: 'Zen Browser', category: 'Browsers', winget: 'Zen-Team.Zen-Browser' },
+  { id: 'opera', name: 'Opera', category: 'Browsers', winget: 'Opera.Opera' },
+  { id: 'opera-gx', name: 'Opera GX', category: 'Browsers', winget: 'Opera.OperaGX' },
 
   // ============================================================
   //  COMMUNICATIONS
@@ -312,6 +344,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'guilded', name: 'Guilded', category: 'Communications', winget: 'Guilded.Guilded' },
   { id: 'mumble', name: 'Mumble', category: 'Communications', winget: 'Mumble.Mumble.Client' },
   { id: 'jitsi', name: 'Jitsi Meet', category: 'Communications', winget: 'Jitsi.Meet' },
+  { id: 'caprine', name: 'Caprine (Messenger)', category: 'Communications', winget: 'Caprine.Caprine' },
+  { id: 'session', name: 'Session', category: 'Communications', winget: 'Session.Session' },
 
   // ============================================================
   //  DEVELOPMENT
@@ -400,6 +434,12 @@ export const appsCatalog: AppItem[] = [
   { id: 'paint-net', name: 'Paint.NET', category: 'Multimedia', winget: 'dotPDN.PaintDotNet' },
   { id: 'sharex', name: 'ShareX (Screenshots)', category: 'Multimedia', winget: 'ShareX.ShareX' },
   { id: 'vlc', name: 'VLC (Video Player)', category: 'Multimedia', winget: 'VideoLAN.VLC' },
+  { id: 'spotify', name: 'Spotify', category: 'Multimedia', winget: 'Spotify.Spotify' },
+  { id: 'freetube', name: 'FreeTube (YouTube)', category: 'Multimedia', winget: 'FreeTube.FreeTube' },
+  { id: 'amazon-music', name: 'Amazon Music', category: 'Multimedia', winget: 'Amazon.Music' },
+  { id: 'deezer', name: 'Deezer', category: 'Multimedia', winget: 'Deezer.Deezer' },
+  { id: 'tidal', name: 'TIDAL', category: 'Multimedia', winget: 'TIDALMusicAS.TIDAL' },
+  { id: 'cider', name: 'Cider (Apple Music)', category: 'Multimedia', winget: 'CiderCollective.Cider' },
 
   // ============================================================
   //  UTILITIES
@@ -460,6 +500,9 @@ export const appsCatalog: AppItem[] = [
   { id: 'hxd', name: 'HxD Hex Editor', category: 'Utilities', winget: 'MHNexus.HxD' },
   { id: 'windirstat', name: 'WinDirStat', category: 'Utilities', winget: 'WinDirStat.WinDirStat' },
   { id: 'etcher', name: 'balenaEtcher', category: 'Utilities', winget: 'Balena.Etcher' },
+  { id: 'mega', name: 'MEGAsync', category: 'Utilities', winget: 'Mega.MEGASync' },
+  { id: 'pcloud', name: 'pCloud Drive', category: 'Utilities', winget: 'pCloudAG.pCloudDrive' },
+  { id: 'icloud', name: 'iCloud', category: 'Utilities', winget: 'Apple.iCloud' },
 
   // ============================================================
   //  PRO TOOLS
@@ -484,6 +527,8 @@ export const appsCatalog: AppItem[] = [
   { id: 'wireshark', name: 'Wireshark', category: 'Pro Tools', winget: 'WiresharkFoundation.Wireshark' },
   { id: 'mobaxterm', name: 'MobaXterm', category: 'Pro Tools', winget: 'Mobatek.MobaXterm' },
   { id: 'heidisql', name: 'HeidiSQL', category: 'Pro Tools', winget: 'HeidiSQL.HeidiSQL' },
+  { id: 'cloudflare-warp', name: 'Cloudflare WARP', category: 'Pro Tools', winget: 'Cloudflare.Warp' },
+  { id: 'cloudflared', name: 'cloudflared', category: 'Pro Tools', winget: 'Cloudflare.cloudflared' },
 
   // ============================================================
   //  MICROSOFT TOOLS
