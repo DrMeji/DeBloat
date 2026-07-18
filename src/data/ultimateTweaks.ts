@@ -1,5 +1,6 @@
 import { gamerTweaks, type Tweak } from './gamerTweaks';
 import { developerTweaks } from './developerTweaks';
+import { tunesTweaks } from './tunesTweaks';
 
 // Extreme options only available in Ultimate. Off by default / excluded from Recommended.
 const ultimateExtra: Tweak[] = [
@@ -205,7 +206,7 @@ const ultimateExtra: Tweak[] = [
 ];
 
 function dedupeKey(tweak: Tweak): string {
-  const baseId = tweak.id.replace(/^(dev-|ult-)/, '');
+  const baseId = tweak.id.replace(/^(dev-|ult-|tunes-)/, '');
   // Collapse profile variants of the same logical change (e.g. two OneDrive entries).
   if (baseId.includes('onedrive') || /onedrive/i.test(tweak.name)) return 'logical:onedrive';
   if (baseId.includes('memory-compression')) return 'logical:memory-compression';
@@ -217,16 +218,19 @@ function dedupeKey(tweak: Tweak): string {
   if (baseId.includes('disable-sysmain')) return 'logical:sysmain';
   if (baseId.includes('disable-wsearch')) return 'logical:wsearch';
   if (baseId.includes('disable-telemetry-policy')) return 'logical:telemetry-policy';
-  if (baseId.includes('disable-advertising-id')) return 'logical:advertising-id';
+  if (baseId.includes('disable-advertising-id') || baseId.includes('disable-ad-id')) return 'logical:advertising-id';
   if (baseId.includes('disable-consumer-features')) return 'logical:consumer-features';
   if (baseId.includes('disable-compat-appraiser')) return 'logical:compat-appraiser';
   if (baseId.includes('ceip')) return 'logical:ceip';
+  if (baseId.includes('visual-fx') || baseId.includes('visual-effects')) return 'logical:visual-effects';
+  if (baseId.includes('disable-location')) return 'logical:location';
+  if (baseId.includes('game-bar') || baseId.includes('game-dvr')) return 'logical:gamedvr';
   return `${tweak.type}:${tweak.target}`;
 }
 
 const seen = new Set<string>();
 const merged: Tweak[] = [];
-for (const tweak of [...gamerTweaks, ...developerTweaks, ...ultimateExtra]) {
+for (const tweak of [...gamerTweaks, ...developerTweaks, ...tunesTweaks, ...ultimateExtra]) {
   const key = dedupeKey(tweak);
   if (seen.has(key)) continue;
   seen.add(key);
