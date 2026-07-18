@@ -101,12 +101,12 @@
 }
 
 .restore-btn-primary {
-  background-color: #e5484d;
+  background-color: #3b82f6;
   color: #fff;
 }
 
 .restore-btn-primary:hover:not(:disabled) {
-  background-color: #ff5c60;
+  background-color: #2563eb;
 }
 
 .restore-btn-ghost {

@@ -30,8 +30,8 @@
 }
 
 .app-card.selected {
-  border-color: #e5484d;
-  background-color: rgba(229, 72, 77, 0.08);
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.08);
 }
 
 .app-avatar {
@@ -78,7 +78,7 @@
 }
 
 .app-card.selected .app-dot {
-  background-color: #e5484d;
+  background-color: #3b82f6;
 }
 
 .app-card.installed .app-dot {

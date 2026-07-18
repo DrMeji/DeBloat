@@ -24,6 +24,18 @@
   max-width: 180px;
   display: block;
   object-fit: contain;
+  /* Soft indigo/white glow matching the welcome title gradient */
+  filter: drop-shadow(0 0 10px rgba(165, 180, 252, 0.55));
+  animation: sidebarLogoGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes sidebarLogoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(165, 180, 252, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(165, 180, 252, 0.75));
+  }
 }
 
 .sidebar-nav {

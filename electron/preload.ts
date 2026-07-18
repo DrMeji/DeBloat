@@ -17,7 +17,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   installApps: (apps: unknown[]) =>
     ipcRenderer.invoke('install-apps', apps),
   createRestorePoint: () => ipcRenderer.invoke('create-restore-point'),
-  
+  onTweakLog: (callback: (payload: unknown) => void) => {
+    const listener = (_event: unknown, payload: unknown) => callback(payload);
+    ipcRenderer.on('tweak-log', listener);
+    return () => ipcRenderer.removeListener('tweak-log', listener);
+  },
+
   // Platform detection
   platform: process.platform
 });

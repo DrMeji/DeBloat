@@ -1,24 +1,28 @@
 import React, { useState, useMemo } from 'react';
 import { ultimateTweaks } from '../data/ultimateTweaks';
 import type { Tweak } from '../data/gamerTweaks';
+import { LiveTerminal } from '../components/LiveTerminal';
+import { useTweakRunner } from '../hooks/useTweakRunner';
 import './GamerView.css';
 import './UltimateView.css';
-
-type TweakStatus = 'applied' | 'failed' | 'working' | 'pending';
 
 interface UltimateViewProps {
   onCancel?: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const electronAPI = (window as any).electronAPI;
-
 const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   const [acknowledged, setAcknowledged] = useState(false);
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
-  const [tweakStatuses, setTweakStatuses] = useState<Record<string, TweakStatus>>({});
   const [activePreset, setActivePreset] = useState<string | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
+  const {
+    tweakStatuses,
+    isApplying,
+    logLines,
+    terminalOpen,
+    setTerminalOpen,
+    applySummary,
+    runTweaks,
+  } = useTweakRunner();
 
   const preferredOrder = ['Apps', 'Security', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
   const categoryOrder = preferredOrder.filter(c => ultimateTweaks.some(t => t.category === c));
@@ -43,14 +47,12 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   };
 
   const handlePresetRecommended = () => {
-    const recommendedIds = ultimateTweaks.filter(t => t.recommended).map(t => t.id);
-    setSelectedTweaks(recommendedIds);
+    setSelectedTweaks(ultimateTweaks.filter(t => t.recommended).map(t => t.id));
     setActivePreset('recommended');
   };
 
   const handlePresetAggressive = () => {
-    const allIds = ultimateTweaks.map(t => t.id);
-    setSelectedTweaks(allIds);
+    setSelectedTweaks(ultimateTweaks.map(t => t.id));
     setActivePreset('aggressive');
   };
 
@@ -59,39 +61,8 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
     setActivePreset('reset');
   };
 
-  const handleApplyChanges = async () => {
-    const ids = [...selectedTweaks];
-    if (ids.length === 0) return;
-    const toApply = ultimateTweaks.filter(t => ids.includes(t.id));
-    setIsApplying(true);
-    setTweakStatuses(prev => {
-      const next = { ...prev };
-      ids.forEach(id => { next[id] = 'working'; });
-      return next;
-    });
-
-    try {
-      if (electronAPI?.applyTweaks) {
-        const results = await electronAPI.applyTweaks(toApply, 'apply');
-        setTweakStatuses(prev => {
-          const next = { ...prev };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          results.forEach((r: any) => { next[r.id] = r.success ? 'applied' : 'failed'; });
-          return next;
-        });
-      } else {
-        await new Promise(res => setTimeout(res, 600));
-        setTweakStatuses(prev => {
-          const next = { ...prev };
-          ids.forEach(id => { next[id] = 'applied'; });
-          return next;
-        });
-      }
-    } finally {
-      setIsApplying(false);
-      // Keep the applied tweaks switched ON so the UI reflects the machine's
-      // current state instead of resetting to off.
-    }
+  const handleApplyChanges = () => {
+    void runTweaks(ultimateTweaks.filter(t => selectedTweaks.includes(t.id)));
   };
 
   const getRiskColor = (risk: Tweak['risk']) => {
@@ -113,18 +84,20 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
           <div className="ultimate-warning-icon">!</div>
           <h1 className="ultimate-warning-title">Proceed with Caution</h1>
           <p className="ultimate-warning-lead">
-            The Ultimate profile includes the most aggressive changes available. These options are
-            powerful enough that they can leave your PC less secure or less stable.
+            The Ultimate profile combines every Gamer and Developer tweak with the most
+            aggressive changes available. These options are powerful enough that they can
+            leave your PC less secure or less stable.
           </p>
           <ul className="ultimate-warning-list">
-            <li>Can <strong>disable Microsoft Defender</strong>, leaving no built-in antivirus.</li>
-            <li>Can <strong>turn off SmartScreen</strong>, so downloaded files run without warnings.</li>
-            <li>Can <strong>disable CPU security mitigations</strong> for extra performance.</li>
-            <li>Some changes require a reboot and may affect system stability.</li>
+            <li>Can <strong>disable Microsoft Defender, Firewall, SmartScreen, and UAC</strong>.</li>
+            <li>Can <strong>remove Xbox, Edge, Bing Search, and OneDrive completely</strong>.</li>
+            <li>Can <strong>permanently disable Windows Update</strong>.</li>
+            <li>Some Developer options (WSL / Hyper-V) may fail inside a VirtualBox VM.</li>
           </ul>
           <p className="ultimate-warning-note">
-            Nothing is applied automatically. Every option starts off, and the danger items are
-            excluded from the Recommended preset. You are in control of what runs.
+            Nothing is applied automatically. Every option starts off, and the danger
+            items are excluded from the Recommended preset. Watch the Live Terminal for
+            exactly what succeeds or fails.
           </p>
           <div className="ultimate-warning-actions">
             {onCancel && (
@@ -214,6 +187,14 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
           </div>
         ))}
       </div>
+
+      <LiveTerminal
+        open={terminalOpen}
+        onToggle={() => setTerminalOpen(v => !v)}
+        live={isApplying}
+        lines={logLines}
+        summary={applySummary}
+      />
     </div>
   );
 };

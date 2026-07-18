@@ -148,6 +148,7 @@ ipcMain.handle('get-system-info', async () => {
 
 type TweakPayload = {
   id: string;
+  name?: string;
   type: 'appx' | 'service' | 'registry' | 'task' | 'command';
   target: string;
   value?: unknown;
@@ -211,16 +212,18 @@ function buildTaskCommand(target: string, action: string): string {
   const taskPath = idx >= 0 ? target.slice(0, idx + 1) : '\\';
   const taskName = idx >= 0 ? target.slice(idx + 1) : target;
   const verb = action === 'enable' ? 'Enable-ScheduledTask' : 'Disable-ScheduledTask';
-  return `$t = Get-ScheduledTask -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue; if ($t) { ${verb} -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue | Out-Null }`;
+  return `$t = Get-ScheduledTask -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue; if ($t) { Write-Output \"Updating task: ${taskPath}${taskName}\"; ${verb} -TaskName '${taskName}' -TaskPath '${taskPath}' -ErrorAction SilentlyContinue | Out-Null; Write-Output 'Task updated' } else { Write-Output \"Task not present (skipped): ${taskPath}${taskName}\" }; exit 0`;
 }
 
 function buildAppxRemoveCommand(target: string, permanent?: boolean): string {
   const names = target.split(',').map(s => s.trim()).filter(Boolean);
-  const parts: string[] = [];
+  const parts: string[] = ['$ErrorActionPreference = \'SilentlyContinue\''];
   for (const name of names) {
-    parts.push(`Get-AppxPackage -AllUsers '*${name}*' | Remove-AppxPackage -ErrorAction SilentlyContinue`);
+    parts.push(`Write-Output \"Looking for app: ${name}\"`);
+    parts.push(`$pkgs = @(Get-AppxPackage -AllUsers '*${name}*')`);
+    parts.push(`if ($pkgs.Count -eq 0) { Write-Output \"  (not installed)\" } else { $pkgs | ForEach-Object { Write-Output \"  Removing $($_.Name)\"; $_ | Remove-AppxPackage -ErrorAction SilentlyContinue } }`);
     if (permanent) {
-      parts.push(`Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like '*${name}*' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue`);
+      parts.push(`Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like '*${name}*' } | ForEach-Object { Write-Output \"  Removing provisioned $($_.PackageName)\"; $_ | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue }`);
     }
   }
   return parts.join('; ');
@@ -267,39 +270,97 @@ function buildTweakCommand(tweak: TweakPayload, mode: 'apply' | 'undo'): string 
   }
 }
 
-function runPowershell(command: string): Promise<{ success: boolean; error?: string }> {
-  const { execFile } = require('child_process');
+function runPowershell(
+  command: string,
+  onOutput?: (chunk: string) => void
+): Promise<{ success: boolean; error?: string }> {
+  const { spawn } = require('child_process');
   return new Promise((resolve) => {
-    execFile(
+    const child = spawn(
       'powershell.exe',
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
-      { windowsHide: true, timeout: 300000, maxBuffer: 1024 * 1024 * 10 },
-      (error: (Error & { code?: number }) | null, _stdout: string, stderr: string) => {
-        // Exit code 3010 means "success, reboot required" (common for DISM /
-        // feature changes) and should be treated as success.
-        if (error && error.code !== 3010) {
-          resolve({ success: false, error: (stderr || error.message || '').trim().slice(0, 500) });
-        } else {
-          resolve({ success: true });
-        }
-      }
+      { windowsHide: true }
     );
+    let stderr = '';
+    const timer = setTimeout(() => {
+      try { child.kill(); } catch { /* ignore */ }
+      resolve({ success: false, error: 'Timed out after 5 minutes' });
+    }, 300000);
+
+    child.stdout?.on('data', (buf: Buffer) => {
+      const text = buf.toString();
+      onOutput?.(text);
+    });
+    child.stderr?.on('data', (buf: Buffer) => {
+      const text = buf.toString();
+      stderr += text;
+      onOutput?.(text);
+    });
+    child.on('error', (err: Error) => {
+      clearTimeout(timer);
+      resolve({ success: false, error: err.message });
+    });
+    child.on('close', (code: number | null) => {
+      clearTimeout(timer);
+      // 0 = ok, 3010 = success but reboot required (DISM / features)
+      if (code === 0 || code === 3010 || code === null) {
+        resolve({ success: true });
+      } else {
+        resolve({ success: false, error: (stderr || `Exit code ${code}`).trim().slice(0, 500) });
+      }
+    });
   });
 }
 
-// Apply (or undo) a batch of tweaks, returning a per-tweak result.
-ipcMain.handle('apply-tweaks', async (_event, tweaks: TweakPayload[], mode: 'apply' | 'undo' = 'apply') => {
+function sendLog(event: { sender: { send: (channel: string, payload: unknown) => void } }, payload: Record<string, unknown>) {
+  try {
+    event.sender.send('tweak-log', payload);
+  } catch {
+    // Window may have closed mid-run.
+  }
+}
+
+// Apply (or undo) a batch of tweaks, streaming live progress to the renderer.
+ipcMain.handle('apply-tweaks', async (event, tweaks: TweakPayload[], mode: 'apply' | 'undo' = 'apply') => {
   const results: { id: string; success: boolean; error?: string }[] = [];
-  for (const tweak of tweaks) {
+  const total = tweaks.length;
+  let successCount = 0;
+  let failCount = 0;
+
+  for (let i = 0; i < tweaks.length; i++) {
+    const tweak = tweaks[i];
+    const label = tweak.name || tweak.id;
+    sendLog(event, { type: 'start', id: tweak.id, name: label, index: i + 1, total });
+
     const command = buildTweakCommand(tweak, mode);
     if (!command) {
+      failCount += 1;
       results.push({ id: tweak.id, success: false, error: 'Unsupported tweak type' });
+      sendLog(event, { type: 'fail', id: tweak.id, name: label, error: 'Unsupported tweak type' });
       continue;
     }
-    const result = await runPowershell(command);
+
+    const preview = command.length > 180 ? `${command.slice(0, 180)}...` : command;
+    sendLog(event, { type: 'command', id: tweak.id, line: preview });
+
+    const result = await runPowershell(command, (chunk) => {
+      chunk.split(/\r?\n/).forEach((line) => {
+        if (line.trim()) sendLog(event, { type: 'output', id: tweak.id, line });
+      });
+    });
+
+    if (result.success) {
+      successCount += 1;
+      sendLog(event, { type: 'success', id: tweak.id, name: label });
+    } else {
+      failCount += 1;
+      sendLog(event, { type: 'fail', id: tweak.id, name: label, error: result.error });
+    }
     results.push({ id: tweak.id, success: result.success, error: result.error });
   }
-  return results;
+
+  sendLog(event, { type: 'done', successCount, failCount, total });
+  return { results, successCount, failCount, total };
 });
 
 // Install a batch of apps via winget, returning a per-app result.

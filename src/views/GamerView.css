@@ -193,7 +193,7 @@
 }
 
 input:checked + .toggle-slider {
-  background-color: #e5484d; /* Red accent */
+  background-color: #3b82f6;
 }
 
 input:checked + .toggle-slider:before {
@@ -211,12 +211,12 @@ input:checked + .toggle-slider:before {
 }
 
 .apply-btn {
-  background-color: #e5484d;
+  background-color: #3b82f6;
   color: white;
 }
 
 .apply-btn:hover:not(:disabled) {
-  background-color: #ff5c60;
+  background-color: #2563eb;
 }
 
 .undo-btn {

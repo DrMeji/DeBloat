@@ -1,18 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { gamerTweaks, Tweak } from '../data/gamerTweaks';
+import { LiveTerminal } from '../components/LiveTerminal';
+import { useTweakRunner } from '../hooks/useTweakRunner';
 import './GamerView.css';
-
-type TweakStatus = 'applied' | 'failed' | 'working' | 'pending';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const electronAPI = (window as any).electronAPI;
 
 const GamerView: React.FC = () => {
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
-  const [tweakStatuses, setTweakStatuses] = useState<Record<string, TweakStatus>>({});
-  const [lastAppliedTweaks, setLastAppliedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
+  const {
+    tweakStatuses,
+    isApplying,
+    logLines,
+    terminalOpen,
+    setTerminalOpen,
+    applySummary,
+    runTweaks,
+  } = useTweakRunner();
 
   const categoryOrder = ['Apps', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks'];
   const [activeCategory, setActiveCategory] = useState<string>('Apps');
@@ -32,14 +35,12 @@ const GamerView: React.FC = () => {
   };
 
   const handlePresetRecommended = () => {
-    const recommendedIds = gamerTweaks.filter(t => t.recommended).map(t => t.id);
-    setSelectedTweaks(recommendedIds);
+    setSelectedTweaks(gamerTweaks.filter(t => t.recommended).map(t => t.id));
     setActivePreset('recommended');
   };
 
   const handlePresetAggressive = () => {
-    const allIds = gamerTweaks.map(t => t.id);
-    setSelectedTweaks(allIds);
+    setSelectedTweaks(gamerTweaks.map(t => t.id));
     setActivePreset('aggressive');
   };
 
@@ -48,65 +49,15 @@ const GamerView: React.FC = () => {
     setActivePreset('reset');
   };
 
-  const handleApplyChanges = async () => {
-    const ids = [...selectedTweaks];
-    if (ids.length === 0) return;
-    const toApply = gamerTweaks.filter(t => ids.includes(t.id));
-    setLastAppliedTweaks(ids);
-    setIsApplying(true);
-    setTweakStatuses(prev => {
-      const next = { ...prev };
-      ids.forEach(id => { next[id] = 'working'; });
-      return next;
-    });
-
-    try {
-      if (electronAPI?.applyTweaks) {
-        const results = await electronAPI.applyTweaks(toApply, 'apply');
-        setTweakStatuses(prev => {
-          const next = { ...prev };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          results.forEach((r: any) => { next[r.id] = r.success ? 'applied' : 'failed'; });
-          return next;
-        });
-      } else {
-        // Browser preview (no Electron bridge): simulate a successful run.
-        await new Promise(res => setTimeout(res, 600));
-        setTweakStatuses(prev => {
-          const next = { ...prev };
-          ids.forEach(id => { next[id] = 'applied'; });
-          return next;
-        });
-      }
-    } finally {
-      setIsApplying(false);
-      // Keep the applied tweaks switched ON so the UI reflects the machine's
-      // current state instead of resetting to off.
-    }
-  };
-
-  const handleUndoLast = () => {
-    if (lastAppliedTweaks.length === 0) {
-      return;
-    }
-    console.log('Undoing tweaks:', lastAppliedTweaks);
-    setTweakStatuses(prev => {
-      const next = { ...prev };
-      lastAppliedTweaks.forEach(id => {
-        delete next[id];
-      });
-      return next;
-    });
-    // Bring the reverted tweaks back as selected so the change is visible
-    setSelectedTweaks(lastAppliedTweaks);
-    setActivePreset(null);
-    setLastAppliedTweaks([]);
+  const handleApplyChanges = () => {
+    const toApply = gamerTweaks.filter(t => selectedTweaks.includes(t.id));
+    void runTweaks(toApply);
   };
 
   const getRiskColor = (risk: Tweak['risk']) => {
-    if (risk === 'safe') return '#4ade80'; // green
-    if (risk === 'moderate') return '#facc15'; // yellow
-    if (risk === 'aggressive') return '#f87171'; // red
+    if (risk === 'safe') return '#4ade80';
+    if (risk === 'moderate') return '#facc15';
+    if (risk === 'aggressive') return '#f87171';
     return '#888';
   };
 
@@ -189,6 +140,13 @@ const GamerView: React.FC = () => {
         ))}
       </div>
 
+      <LiveTerminal
+        open={terminalOpen}
+        onToggle={() => setTerminalOpen(v => !v)}
+        live={isApplying}
+        lines={logLines}
+        summary={applySummary}
+      />
     </div>
   );
 };
