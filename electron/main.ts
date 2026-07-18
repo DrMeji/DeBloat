@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -784,6 +784,14 @@ ipcMain.handle('restart-computer', async () => {
       resolve({ success: !error, error: error?.message });
     });
   });
+});
+
+ipcMain.handle('open-external', async (_event, url: string) => {
+  if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+    return { success: false, error: 'Invalid URL' };
+  }
+  await shell.openExternal(url);
+  return { success: true };
 });
 
 app.whenReady().then(() => {

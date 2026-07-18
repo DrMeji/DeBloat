@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { Welcome } from './components/Welcome';
 import { RestorePrompt, type RestorePromptResult } from './components/RestorePrompt';
@@ -7,12 +7,14 @@ import { Sidebar } from './components/Sidebar';
 import { WindowControls } from './components/WindowControls';
 import { TerminalProvider } from './context/TerminalContext';
 import { SessionProvider, type RestorePointStatus } from './context/SessionContext';
+import { isLicensed, isPremiumView, logOutAccount } from './lib/settingsStore';
 import GamerView from './views/GamerView';
 import DeveloperView from './views/DeveloperView';
 import UltimateView from './views/UltimateView';
 import TunesView from './views/TunesView';
 import AppsView from './views/AppsView';
 import TerminalView from './views/TerminalView';
+import SettingsView from './views/SettingsView';
 
 type Phase = 'welcome' | 'restore' | 'app';
 
@@ -21,16 +23,27 @@ function AppShell({
   setActiveView,
   ultimateAcknowledged,
   setUltimateAcknowledged,
+  licensed,
   onLogout,
 }: {
   activeView: string;
   setActiveView: (view: string) => void;
   ultimateAcknowledged: boolean;
   setUltimateAcknowledged: (v: boolean) => void;
+  licensed: boolean;
   onLogout: () => void;
 }) {
+  const safeSetView = (view: string) => {
+    if (!licensed && isPremiumView(view)) {
+      setActiveView('settings');
+      return;
+    }
+    setActiveView(view);
+  };
+
   const renderView = () => {
-    switch (activeView) {
+    const view = !licensed && isPremiumView(activeView) ? 'tunes' : activeView;
+    switch (view) {
       case 'gamer':
         return <GamerView />;
       case 'developer':
@@ -38,7 +51,7 @@ function AppShell({
       case 'ultimate':
         return (
           <UltimateView
-            onCancel={() => setActiveView('gamer')}
+            onCancel={() => setActiveView('tunes')}
             acknowledged={ultimateAcknowledged}
             onAcknowledge={() => setUltimateAcknowledged(true)}
           />
@@ -49,14 +62,21 @@ function AppShell({
         return <AppsView onNavigateToTerminal={() => setActiveView('terminal')} />;
       case 'terminal':
         return <TerminalView />;
+      case 'settings':
+        return <SettingsView />;
       default:
-        return <GamerView />;
+        return <TunesView />;
     }
   };
 
   return (
     <div className="app">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} onLogout={onLogout} />
+      <Sidebar
+        activeView={activeView}
+        onViewChange={safeSetView}
+        onLogout={onLogout}
+        licensed={licensed}
+      />
       <main className="main-content">
         <div className="view-container">
           {renderView()}
@@ -69,21 +89,38 @@ function AppShell({
 
 function App() {
   const [phase, setPhase] = useState<Phase>('welcome');
-  const [activeView, setActiveView] = useState('gamer');
+  const [activeView, setActiveView] = useState('tunes');
   const [ultimateAcknowledged, setUltimateAcknowledged] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
   const [restoreSeed, setRestoreSeed] = useState<RestorePointStatus>('none');
+  const [licensed, setLicensed] = useState(() => isLicensed());
+
+  useEffect(() => {
+    const sync = () => setLicensed(isLicensed());
+    window.addEventListener('debloat-settings-changed', sync);
+    return () => window.removeEventListener('debloat-settings-changed', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!licensed && isPremiumView(activeView)) {
+      setActiveView('tunes');
+    }
+  }, [licensed, activeView]);
 
   const handleLogout = () => {
-    setActiveView('gamer');
+    logOutAccount();
+    setActiveView('tunes');
     setUltimateAcknowledged(false);
     setRestoreSeed('none');
     setSessionKey(k => k + 1);
+    setLicensed(isLicensed());
     setPhase('welcome');
   };
 
   const handleRestoreDone = (result: RestorePromptResult) => {
     setRestoreSeed(result === 'created' ? 'created' : 'skipped');
+    setLicensed(isLicensed());
+    setActiveView(isLicensed() ? 'gamer' : 'tunes');
     setPhase('app');
   };
 
@@ -92,7 +129,7 @@ function App() {
       <>
         <div className="titlebar-drag" aria-hidden />
         <WindowControls />
-        <Welcome onContinue={() => setPhase('restore')} />
+        <Welcome onAuthenticated={() => setPhase('restore')} />
       </>
     );
   }
@@ -118,6 +155,7 @@ function App() {
             setActiveView={setActiveView}
             ultimateAcknowledged={ultimateAcknowledged}
             setUltimateAcknowledged={setUltimateAcknowledged}
+            licensed={licensed}
             onLogout={handleLogout}
           />
         </SessionProvider>

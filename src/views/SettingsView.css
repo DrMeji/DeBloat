@@ -1,0 +1,435 @@
+.settings-view {
+  --settings-ink: #f0f0f0;
+  --settings-muted: #8a8a8a;
+  --settings-line: #2a2a2a;
+  --settings-panel: #101010;
+  --settings-panel-2: #161616;
+  --settings-accent: #3b82f6;
+  --settings-ok: #4ade80;
+  --settings-err: #f87171;
+
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  padding: 4.25rem 2.25rem 2.5rem;
+  color: var(--settings-ink);
+  background: #000;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  -webkit-app-region: no-drag;
+}
+
+/* Beat .view-container > * { overflow-y: auto } so Settings never scrolls */
+.view-container > .settings-view {
+  overflow: hidden;
+}
+
+.settings-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--settings-line);
+}
+
+.settings-avatar {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #1c1c1c;
+  border: 1px solid #333;
+}
+
+.settings-hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--settings-muted);
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.settings-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--settings-muted);
+  font-size: 0.95rem;
+}
+
+.settings-license-chip {
+  flex-shrink: 0;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--settings-line);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--settings-muted);
+}
+
+.settings-license-chip.is-paid {
+  color: #fff;
+  background: #2563eb;
+  border-color: transparent;
+}
+
+.settings-banner {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.settings-banner.is-ok {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--settings-ok);
+}
+
+.settings-banner.is-error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--settings-err);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-panel {
+  background: var(--settings-panel);
+  border: 1px solid var(--settings-line);
+  border-radius: 14px;
+  padding: 1.5rem 1.6rem 1.65rem;
+}
+
+.settings-panel-head {
+  margin-bottom: 1.35rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--settings-line);
+}
+
+.settings-panel-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.settings-panel-head p {
+  margin: 0.4rem 0 0;
+  color: var(--settings-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.settings-subhead {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.settings-muted {
+  margin: 0;
+  color: var(--settings-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.settings-field span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--settings-muted);
+}
+
+.settings-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #0a0a0a;
+  color: var(--settings-ink);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.settings-field input:focus {
+  border-color: var(--settings-accent);
+}
+
+.settings-field input::placeholder {
+  color: #555;
+}
+
+.settings-field-readonly {
+  opacity: 0.9;
+  letter-spacing: 0.14em;
+  font-family: Consolas, "Courier New", monospace;
+  font-weight: 700;
+  cursor: default;
+  color: #93c5fd !important;
+}
+
+.settings-btn {
+  align-self: flex-start;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.15rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-btn-primary {
+  background: var(--settings-accent);
+  color: #fff;
+}
+
+.settings-btn-primary:hover {
+  background: #2563eb;
+}
+
+.settings-btn-secondary {
+  background: transparent;
+  color: var(--settings-ink);
+  border: 1px solid #3a3a3a;
+}
+
+.settings-btn-secondary:hover {
+  border-color: #555;
+  color: #fff;
+}
+
+.settings-btn-ghost {
+  background: transparent;
+  color: var(--settings-muted);
+  border: 1px solid transparent;
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+}
+
+.settings-btn-ghost:hover {
+  color: var(--settings-ink);
+}
+
+.settings-btn-buy {
+  background: #fff;
+  color: #000;
+  padding: 0.8rem 1.35rem;
+  font-size: 0.9rem;
+}
+
+.settings-btn-buy:hover {
+  background: #e8e8e8;
+}
+
+.settings-divider {
+  height: 1px;
+  margin: 1.5rem 0;
+  background: var(--settings-line);
+}
+
+.settings-2fa-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-2fa-setup {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem;
+  border-radius: 10px;
+  background: var(--settings-panel-2);
+  border: 1px dashed #333;
+}
+
+.settings-qr {
+  width: 132px;
+  height: 132px;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(0deg, #1c1c1c 0 6px, #111 6px 12px),
+    repeating-linear-gradient(90deg, #1c1c1c 0 6px, #111 6px 12px);
+  border: 1px solid #333;
+  display: grid;
+  place-items: center;
+}
+
+.settings-qr-inner {
+  width: 72%;
+  height: 72%;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--settings-muted);
+}
+
+.settings-qr-inner small {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.settings-secret {
+  display: block;
+  padding: 0.65rem 0.8rem;
+  border-radius: 6px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: #93c5fd;
+  user-select: all;
+}
+
+.settings-2fa-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.settings-backup {
+  margin-top: 1.25rem;
+}
+
+.settings-backup-list {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 1rem;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.88rem;
+  color: #d4d4d4;
+}
+
+.settings-license {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #2a2a2a;
+  background: #101010;
+  padding: 1.65rem 1.6rem 1.7rem;
+}
+
+.settings-license-copy {
+  margin-bottom: 1.25rem;
+}
+
+.settings-license-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--settings-muted);
+}
+
+.settings-license h2 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.settings-license-lead {
+  margin: 0.55rem 0 0;
+  color: var(--settings-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 28rem;
+}
+
+.settings-license-price {
+  margin: 1rem 0 0;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--settings-ink);
+}
+
+.settings-license-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.78rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.settings-license-status {
+  display: inline-block;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.settings-license.is-owned {
+  border-color: #3b82f6;
+}

@@ -70,9 +70,25 @@
   font-weight: 700;
 }
 
+.nav-item-terminal {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.nav-item-terminal:hover,
+.nav-item-terminal.active {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
 .nav-item-live {
   color: #3b82f6 !important;
   font-weight: 700 !important;
+}
+
+.sidebar-nav.is-applying .nav-item-terminal {
+  color: #3b82f6;
+  pointer-events: auto;
 }
 
 /* While Apply/Install is running, dim everything except Terminal + Apps */
@@ -102,6 +118,30 @@
 
 .nav-item.disabled:hover {
   color: #3a3a3a;
+}
+
+.nav-item-locked {
+  opacity: 0.55;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.nav-item-locked:hover {
+  opacity: 0.85;
+  color: #8a8a8a;
+}
+
+.nav-lock-icon {
+  flex-shrink: 0;
+  color: #666;
+  opacity: 0.9;
+}
+
+.nav-item-locked:hover .nav-lock-icon {
+  color: #8a8a8a;
 }
 
 .sidebar-footer {

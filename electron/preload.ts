@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createRestorePoint: (description?: string) =>
     ipcRenderer.invoke('create-restore-point', description),
   restartComputer: () => ipcRenderer.invoke('restart-computer'),
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
   onTweakLog: (callback: (payload: unknown) => void) => {
     const listener = (_event: unknown, payload: unknown) => callback(payload);
     ipcRenderer.on('tweak-log', listener);
