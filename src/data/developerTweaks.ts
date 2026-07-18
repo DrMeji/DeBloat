@@ -66,14 +66,14 @@ export const developerTweaks: Tweak[] = [
   },
   {
     id: 'dev-remove-onedrive',
-    name: 'Remove OneDrive',
-    description: 'Uninstalls OneDrive cloud sync. Only enable if you use a different cloud provider.',
+    name: 'Completely Remove OneDrive',
+    description: 'Fully uninstalls OneDrive, deletes leftover folders, hides it from File Explorer, and blocks Windows from putting it back. Skip if you rely on OneDrive for project sync.',
     category: 'Apps',
     risk: 'moderate',
     recommended: false,
     type: 'command',
-    target: "Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue; $s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -ArgumentList '/uninstall' -Wait }",
-    undo: "$s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -Wait }",
+    target: "Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue; Get-Process OneDrive -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; $s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -ArgumentList '/uninstall' -Wait -ErrorAction SilentlyContinue }; Remove-Item \"$env:USERPROFILE\\OneDrive\" -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\OneDrive\" -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:PROGRAMDATA\\Microsoft OneDrive\" -Recurse -Force -ErrorAction SilentlyContinue; reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive\" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f; reg add \"HKCR\\CLSID\\{018D5C66-4533-4307-9B53-224DE2ED1FE6}\" /v System.IsPinnedToNameSpaceTree /t REG_DWORD /d 0 /f; reg add \"HKCR\\Wow6432Node\\CLSID\\{018D5C66-4533-4307-9B53-224DE2ED1FE6}\" /v System.IsPinnedToNameSpaceTree /t REG_DWORD /d 0 /f; Remove-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" -Name \"OneDrive\" -ErrorAction SilentlyContinue",
+    undo: "reg delete \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive\" /v DisableFileSyncNGSC /f; reg add \"HKCR\\CLSID\\{018D5C66-4533-4307-9B53-224DE2ED1FE6}\" /v System.IsPinnedToNameSpaceTree /t REG_DWORD /d 1 /f; $s = @(\"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\",\"$env:SystemRoot\\System32\\OneDriveSetup.exe\") | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($s) { Start-Process $s -Wait }",
   },
 
   // ============================================================
