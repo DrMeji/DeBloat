@@ -12,18 +12,33 @@ export const PAYPAL_CHECKOUT_URL =
 /**
  * Creator accounts — always fully unlocked, never need to pay.
  * Sign in / sign up with one of these emails to get free access.
+ * Special user codes are reserved for these emails only.
  */
 export const CREATOR_EMAILS = ['thomasjkmejia@gmail.com'] as const;
+
+/** Reserved user code for the creator email (not a random 7-char id). */
+export const CREATOR_USER_CODES: Record<string, string> = {
+  'thomasjkmejia@gmail.com': 'DEV',
+};
 
 export function isCreatorEmail(email: string): boolean {
   const normalized = email.trim().toLowerCase();
   return (CREATOR_EMAILS as readonly string[]).includes(normalized);
 }
 
+export function creatorUserCodeFor(email: string): string | null {
+  const normalized = email.trim().toLowerCase();
+  return CREATOR_USER_CODES[normalized] ?? null;
+}
+
 export function withCreatorAccess(settings: SettingsState): SettingsState {
   if (!isCreatorEmail(settings.email)) return settings;
-  if (settings.licensed) return settings;
-  return { ...settings, licensed: true };
+  const reserved = creatorUserCodeFor(settings.email);
+  const next = { ...settings, licensed: true };
+  if (reserved && next.userCode !== reserved) {
+    next.userCode = reserved;
+  }
+  return next;
 }
 
 /** Tabs that require a paid license */
@@ -35,17 +50,13 @@ export function isPremiumView(view: string): view is PremiumView {
 }
 
 export type SettingsState = {
-  /** Unique 7-character alphanumeric user id */
+  /** Unique user id (7-char for regular accounts; reserved codes like DEV for creators) */
   userCode: string;
   email: string;
   /** Local mock only — never a real hash server-side */
   passwordSet: string;
-  twoFactorEnabled: boolean;
-  twoFactorSecret: string;
-  backupCodes: string[];
-  /** SMS / mobile number 2FA */
-  phone2faEnabled: boolean;
-  phoneNumber: string;
+  /** Email 2FA — code sent to profile email at sign-in */
+  email2faEnabled: boolean;
   licensed: boolean;
 };
 
@@ -58,13 +69,12 @@ const defaults: SettingsState = {
   userCode: '',
   email: '',
   passwordSet: '',
-  twoFactorEnabled: false,
-  twoFactorSecret: '',
-  backupCodes: [],
-  phone2faEnabled: false,
-  phoneNumber: '',
+  email2faEnabled: false,
   licensed: false,
 };
+
+/** Dummy / test accounts to wipe on load */
+const PURGE_EMAILS = ['1@gmail.com'] as const;
 
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
@@ -75,30 +85,39 @@ function safeParse<T>(raw: string | null): T | null {
   }
 }
 
-function normalizeSettings(parsed: Partial<SettingsState> & { displayName?: string } | null): SettingsState {
+function normalizeSettings(parsed: Partial<SettingsState> & {
+  displayName?: string;
+  twoFactorEnabled?: boolean;
+  phone2faEnabled?: boolean;
+} | null): SettingsState {
   if (!parsed) return { ...defaults };
   const legacyName = typeof parsed.displayName === 'string' ? parsed.displayName : '';
   const rawCode = typeof parsed.userCode === 'string' ? parsed.userCode : '';
+  const email2faEnabled = Boolean(
+    parsed.email2faEnabled ?? parsed.twoFactorEnabled ?? parsed.phone2faEnabled
+  );
   return {
     ...defaults,
     userCode: rawCode || (legacyName.length === 7 ? legacyName.toUpperCase() : ''),
     email: typeof parsed.email === 'string' ? parsed.email : '',
     passwordSet: typeof parsed.passwordSet === 'string' ? parsed.passwordSet : '',
-    twoFactorEnabled: Boolean(parsed.twoFactorEnabled),
-    twoFactorSecret: typeof parsed.twoFactorSecret === 'string' ? parsed.twoFactorSecret : '',
-    backupCodes: Array.isArray(parsed.backupCodes)
-      ? parsed.backupCodes.filter((c): c is string => typeof c === 'string')
-      : [],
-    phone2faEnabled: Boolean(parsed.phone2faEnabled),
-    phoneNumber: typeof parsed.phoneNumber === 'string' ? parsed.phoneNumber : '',
+    email2faEnabled,
     licensed: Boolean(parsed.licensed),
   };
 }
 
 export function loadSettings(): SettingsState {
-  return withCreatorAccess(
-    normalizeSettings(safeParse<Partial<SettingsState>>(localStorage.getItem(SETTINGS_KEY)))
-  );
+  purgeDummyAccounts();
+  const raw = normalizeSettings(safeParse<Partial<SettingsState>>(localStorage.getItem(SETTINGS_KEY)));
+  const settings = withCreatorAccess(raw);
+  if (
+    settings.email &&
+    (settings.userCode !== raw.userCode || settings.licensed !== raw.licensed)
+  ) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    syncAccountFromSettings(settings);
+  }
+  return settings;
 }
 
 export function saveSettings(next: SettingsState): void {
@@ -137,6 +156,31 @@ export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
+function purgeDummyAccounts(): void {
+  const accounts = loadAccounts();
+  let changed = false;
+  for (const email of PURGE_EMAILS) {
+    if (accounts[email]) {
+      delete accounts[email];
+      changed = true;
+    }
+  }
+  if (changed) saveAccounts(accounts);
+
+  const session = getSessionEmail();
+  if (session && (PURGE_EMAILS as readonly string[]).includes(session)) {
+    clearSession();
+    localStorage.removeItem(SETTINGS_KEY);
+  }
+
+  const current = safeParse<Partial<SettingsState>>(localStorage.getItem(SETTINGS_KEY));
+  const currentEmail = typeof current?.email === 'string' ? current.email.trim().toLowerCase() : '';
+  if (currentEmail && (PURGE_EMAILS as readonly string[]).includes(currentEmail)) {
+    localStorage.removeItem(SETTINGS_KEY);
+    clearSession();
+  }
+}
+
 export type AuthResult =
   | { ok: true; settings: SettingsState; needsTwoFactor?: false }
   | { ok: true; settings: SettingsState; needsTwoFactor: true }
@@ -146,6 +190,7 @@ export function signUp(input: {
   email: string;
   password: string;
 }): AuthResult {
+  purgeDummyAccounts();
   const email = input.email.trim().toLowerCase();
   const password = input.password;
 
@@ -161,7 +206,8 @@ export function signUp(input: {
     return { ok: false, error: 'An account with that email already exists. Log in instead.' };
   }
 
-  const userCode = generateUniqueUserCode(accounts);
+  const reserved = creatorUserCodeFor(email);
+  const userCode = reserved ?? generateUniqueUserCode(accounts);
   const settings = withCreatorAccess({
     ...defaults,
     userCode,
@@ -180,8 +226,9 @@ export function signUp(input: {
 export function logIn(input: {
   email: string;
   password: string;
-  totpCode?: string;
+  emailCode?: string;
 }): AuthResult {
+  purgeDummyAccounts();
   const email = input.email.trim().toLowerCase();
   const accounts = loadAccounts();
   const account = accounts[email];
@@ -194,19 +241,20 @@ export function logIn(input: {
   }
 
   const settings = withCreatorAccess(normalizeSettings(account));
-  if (!settings.userCode) {
-    settings.userCode = generateUniqueUserCode(accounts);
+  const reservedCode = creatorUserCodeFor(email);
+  if (!settings.userCode || (reservedCode && settings.userCode !== reservedCode)) {
+    settings.userCode = reservedCode ?? generateUniqueUserCode(accounts);
     accounts[email] = { ...settings, email, passwordSet: account.passwordSet };
     saveAccounts(accounts);
   }
 
-  if (settings.twoFactorEnabled) {
-    const code = (input.totpCode || '').trim();
+  if (settings.email2faEnabled) {
+    const code = (input.emailCode || '').trim();
     if (!code) {
       return { ok: true, settings, needsTwoFactor: true };
     }
     if (!/^\d{6}$/.test(code)) {
-      return { ok: false, error: 'Enter the 6-digit authenticator code.' };
+      return { ok: false, error: 'Enter the 6-digit code sent to your email.' };
     }
   }
 
@@ -244,28 +292,13 @@ function generateUniqueUserCode(accounts: Record<string, AccountRecord>): string
       .map(a => (a.userCode || '').toUpperCase())
       .filter(Boolean)
   );
+  // Never hand out reserved creator codes to regular accounts
+  for (const code of Object.values(CREATOR_USER_CODES)) {
+    used.add(code.toUpperCase());
+  }
   for (let attempt = 0; attempt < 40; attempt++) {
     const code = generateUserCode();
     if (!used.has(code)) return code;
   }
   return generateUserCode();
-}
-
-export function generateTotpSecret(): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let out = '';
-  for (let i = 0; i < 16; i++) {
-    out += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-  return out;
-}
-
-export function generateBackupCodes(count = 8): string[] {
-  const codes: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const n = Math.floor(10000000 + Math.random() * 90000000);
-    const s = String(n);
-    codes.push(`${s.slice(0, 4)}-${s.slice(4)}`);
-  }
-  return codes;
 }

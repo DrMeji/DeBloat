@@ -11,7 +11,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onAuthenticated }) => {
   const [mode, setMode] = useState<AuthMode>('choose');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [totpCode, setTotpCode] = useState('');
+  const [emailCode, setEmailCode] = useState('');
   const [needs2fa, setNeeds2fa] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +20,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onAuthenticated }) => {
   const resetForm = () => {
     setEmail('');
     setPassword('');
-    setTotpCode('');
+    setEmailCode('');
     setNeeds2fa(false);
     setError(null);
   };
@@ -32,7 +32,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onAuthenticated }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const result = logIn({ email, password, totpCode: needs2fa ? totpCode : undefined });
+    const result = logIn({ email, password, emailCode: needs2fa ? emailCode : undefined });
     if (!result.ok) {
       setError(result.error);
       return;
@@ -117,9 +117,9 @@ export const Welcome: React.FC<WelcomeProps> = ({ onAuthenticated }) => {
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
-                value={totpCode}
-                onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="6-digit code"
+                value={emailCode}
+                onChange={e => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Email code"
                 autoComplete="one-time-code"
                 required
               />

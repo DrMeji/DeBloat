@@ -2,17 +2,20 @@ import React, { useMemo, useState } from 'react';
 import {
   LICENSE_PRICE_LABEL,
   PAYPAL_CHECKOUT_URL,
-  generateBackupCodes,
-  generateTotpSecret,
   isCreatorEmail,
   loadSettings,
   saveSettings,
   type SettingsState,
 } from '../lib/settingsStore';
+import packageJson from '../../package.json';
 import './SettingsView.css';
+
+const APP_VERSION = packageJson.version;
 
 const electronAPI = (window as unknown as { electronAPI?: { openExternal?: (url: string) => Promise<unknown> } })
   .electronAPI;
+
+type InlineMsg = { text: string; tone: 'error' | 'ok' };
 
 function initials(userCode: string, email: string): string {
   if (userCode) return userCode.slice(0, 2).toUpperCase();
@@ -28,154 +31,119 @@ const SettingsView: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [pendingSecret, setPendingSecret] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [show2faSetup, setShow2faSetup] = useState(false);
 
-  const [phoneInput, setPhoneInput] = useState(settings.phoneNumber);
-  const [phoneCode, setPhoneCode] = useState('');
-  const [showPhoneSetup, setShowPhoneSetup] = useState(false);
-
-  const [flash, setFlash] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [profileMsg, setProfileMsg] = useState<InlineMsg | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<InlineMsg | null>(null);
+  const [authMsg, setAuthMsg] = useState<InlineMsg | null>(null);
+  const [licenseMsg, setLicenseMsg] = useState<InlineMsg | null>(null);
 
   const avatar = useMemo(
     () => initials(settings.userCode, settings.email),
     [settings.userCode, settings.email]
   );
 
-  const persist = (next: SettingsState, message?: string) => {
+  const showOk = (
+    setter: React.Dispatch<React.SetStateAction<InlineMsg | null>>,
+    text: string
+  ) => {
+    setter({ text, tone: 'ok' });
+    window.setTimeout(() => setter(null), 2800);
+  };
+
+  const clearMsgs = () => {
+    setProfileMsg(null);
+    setPasswordMsg(null);
+    setAuthMsg(null);
+    setLicenseMsg(null);
+  };
+
+  const persist = (
+    next: SettingsState,
+    zone: 'profile' | 'password' | 'auth' | 'license',
+    message?: string
+  ) => {
     setSettings(next);
     saveSettings(next);
-    setError(null);
-    if (message) {
-      setFlash(message);
-      window.setTimeout(() => setFlash(null), 2800);
-    }
+    clearMsgs();
+    if (!message) return;
+    const setters = {
+      profile: setProfileMsg,
+      password: setPasswordMsg,
+      auth: setAuthMsg,
+      license: setLicenseMsg,
+    } as const;
+    showOk(setters[zone], message);
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedEmail = email.trim();
     if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setError('Enter a valid email address.');
+      setProfileMsg({ text: 'Enter a valid email address.', tone: 'error' });
       return;
     }
-    persist(
-      { ...settings, email: trimmedEmail },
-      'Profile saved on this PC.'
-    );
+    persist({ ...settings, email: trimmedEmail }, 'profile', 'Profile saved on this PC.');
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (settings.passwordSet && currentPassword !== settings.passwordSet) {
-      setError('Current password is incorrect.');
+      setPasswordMsg({ text: 'Current password is incorrect.', tone: 'error' });
       return;
     }
     if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters.');
+      setPasswordMsg({ text: 'New password must be at least 8 characters.', tone: 'error' });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('New password and confirmation do not match.');
+      setPasswordMsg({ text: 'Passwords do not match.', tone: 'error' });
       return;
     }
-    persist({ ...settings, passwordSet: newPassword }, 'Password updated.');
+    persist({ ...settings, passwordSet: newPassword }, 'password', 'Password updated.');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
   };
 
   const start2faSetup = () => {
-    setPendingSecret(generateTotpSecret());
+    if (!settings.email.trim()) {
+      setAuthMsg({ text: 'Add an email in Profile first.', tone: 'error' });
+      return;
+    }
     setVerifyCode('');
     setShow2faSetup(true);
-    setError(null);
+    setAuthMsg(null);
   };
 
   const confirm2fa = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^\d{6}$/.test(verifyCode.trim())) {
-      setError('Enter the 6-digit code from your authenticator app.');
+      setAuthMsg({ text: 'Enter the 6-digit code from your email.', tone: 'error' });
       return;
     }
-    const codes = generateBackupCodes();
     persist(
-      {
-        ...settings,
-        twoFactorEnabled: true,
-        twoFactorSecret: pendingSecret,
-        backupCodes: codes,
-      },
-      'Authenticator 2FA enabled.'
+      { ...settings, email2faEnabled: true },
+      'auth',
+      'Email authenticator enabled.'
     );
     setShow2faSetup(false);
-    setPendingSecret('');
     setVerifyCode('');
   };
 
   const disable2fa = () => {
-    if (!window.confirm('Disable authenticator 2FA on this device?')) return;
+    if (!window.confirm('Disable email authenticator on this device?')) return;
     persist(
-      {
-        ...settings,
-        twoFactorEnabled: false,
-        twoFactorSecret: '',
-        backupCodes: [],
-      },
-      'Authenticator 2FA disabled.'
+      { ...settings, email2faEnabled: false },
+      'auth',
+      'Email authenticator disabled.'
     );
     setShow2faSetup(false);
   };
 
-  const startPhoneSetup = () => {
-    setPhoneInput(settings.phoneNumber);
-    setPhoneCode('');
-    setShowPhoneSetup(true);
-    setError(null);
-  };
-
-  const confirmPhone2fa = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleaned = phoneInput.replace(/[^\d+\s()-]/g, '').trim();
-    const digits = cleaned.replace(/\D/g, '');
-    if (digits.length < 10) {
-      setError('Enter a valid mobile number (at least 10 digits).');
-      return;
-    }
-    if (!/^\d{6}$/.test(phoneCode.trim())) {
-      setError('Enter the 6-digit code sent to your phone.');
-      return;
-    }
-    persist(
-      {
-        ...settings,
-        phone2faEnabled: true,
-        phoneNumber: cleaned,
-      },
-      'Mobile authenticator enabled.'
-    );
-    setShowPhoneSetup(false);
-    setPhoneCode('');
-  };
-
-  const disablePhone2fa = () => {
-    if (!window.confirm('Disable mobile number 2FA on this device?')) return;
-    persist(
-      {
-        ...settings,
-        phone2faEnabled: false,
-        phoneNumber: '',
-      },
-      'Mobile authenticator disabled.'
-    );
-    setPhoneInput('');
-    setShowPhoneSetup(false);
-  };
-
   const handlePayPalPurchase = async () => {
-    setError(null);
+    setLicenseMsg(null);
     try {
       if (electronAPI?.openExternal) {
         await electronAPI.openExternal(PAYPAL_CHECKOUT_URL);
@@ -183,10 +151,14 @@ const SettingsView: React.FC = () => {
         window.open(PAYPAL_CHECKOUT_URL, '_blank', 'noopener,noreferrer');
       }
     } catch {
-      setError('Could not open PayPal. Try again.');
+      setLicenseMsg({ text: 'Could not open PayPal. Try again.', tone: 'error' });
       return;
     }
-    persist({ ...settings, licensed: true }, 'PayPal opened — license unlocked on this PC.');
+    persist(
+      { ...settings, licensed: true },
+      'license',
+      'PayPal opened — license unlocked on this PC.'
+    );
   };
 
   const headerName = settings.userCode || 'Your account';
@@ -211,12 +183,6 @@ const SettingsView: React.FC = () => {
           {isCreator ? 'Creator' : settings.licensed ? 'Paid' : 'Free'}
         </div>
       </header>
-
-      {(flash || error) && (
-        <div className={`settings-banner ${error ? 'is-error' : 'is-ok'}`} role="status">
-          {error || flash}
-        </div>
-      )}
 
       <div className="settings-grid">
         <div className="settings-column">
@@ -245,9 +211,16 @@ const SettingsView: React.FC = () => {
                   autoComplete="email"
                 />
               </label>
-              <button type="submit" className="settings-btn settings-btn-primary">
-                Save profile
-              </button>
+              <div className="settings-form-actions">
+                <button type="submit" className="settings-btn settings-btn-primary">
+                  Save profile
+                </button>
+                {profileMsg && (
+                  <span className={`settings-inline-msg is-${profileMsg.tone}`} role="status">
+                    {profileMsg.text}
+                  </span>
+                )}
+              </div>
             </form>
           </section>
 
@@ -258,7 +231,7 @@ const SettingsView: React.FC = () => {
               <p className="settings-license-lead">
                 {isCreator
                   ? 'You’re signed in as the app creator. Gamer, Developer, and Ultimate stay unlocked — no payment needed.'
-                  : 'Pay once with PayPal to unlock Gamer, Developer, and Ultimate. Tunes and Apps stay free.'}
+                  : 'Pay once with PayPal to unlock Gamer, Developer, and Ultimate. Tunes and Apps stay free. ALL SALES ARE FINAL, NO REFUNDS.'}
               </p>
               {!isCreator && (
                 <>
@@ -274,13 +247,20 @@ const SettingsView: React.FC = () => {
             ) : settings.licensed ? (
               <div className="settings-license-status">You own DeBloat on this PC.</div>
             ) : (
-              <button
-                type="button"
-                className="settings-btn settings-btn-buy settings-btn-paypal"
-                onClick={handlePayPalPurchase}
-              >
-                Pay with PayPal — {LICENSE_PRICE_LABEL}
-              </button>
+              <div className="settings-form-actions">
+                <button
+                  type="button"
+                  className="settings-btn settings-btn-buy settings-btn-paypal"
+                  onClick={handlePayPalPurchase}
+                >
+                  Pay with PayPal — {LICENSE_PRICE_LABEL}
+                </button>
+                {licenseMsg && (
+                  <span className={`settings-inline-msg is-${licenseMsg.tone}`} role="status">
+                    {licenseMsg.text}
+                  </span>
+                )}
+              </div>
             )}
           </section>
         </div>
@@ -289,7 +269,7 @@ const SettingsView: React.FC = () => {
           <section className="settings-panel">
             <div className="settings-panel-head">
               <h2>Security</h2>
-              <p>Password and two-factor authentication.</p>
+              <p>Password and email authenticator.</p>
             </div>
 
             <form className="settings-form" onSubmit={handleChangePassword}>
@@ -300,7 +280,10 @@ const SettingsView: React.FC = () => {
                   <input
                     type="password"
                     value={currentPassword}
-                    onChange={e => setCurrentPassword(e.target.value)}
+                    onChange={e => {
+                      setCurrentPassword(e.target.value);
+                      if (passwordMsg?.tone === 'error') setPasswordMsg(null);
+                    }}
                     autoComplete="current-password"
                   />
                 </label>
@@ -310,7 +293,10 @@ const SettingsView: React.FC = () => {
                 <input
                   type="password"
                   value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
+                  onChange={e => {
+                    setNewPassword(e.target.value);
+                    if (passwordMsg?.tone === 'error') setPasswordMsg(null);
+                  }}
                   autoComplete="new-password"
                   placeholder="At least 8 characters"
                 />
@@ -320,13 +306,23 @@ const SettingsView: React.FC = () => {
                 <input
                   type="password"
                   value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
+                  onChange={e => {
+                    setConfirmPassword(e.target.value);
+                    if (passwordMsg?.tone === 'error') setPasswordMsg(null);
+                  }}
                   autoComplete="new-password"
                 />
               </label>
-              <button type="submit" className="settings-btn settings-btn-secondary">
-                {settings.passwordSet ? 'Update password' : 'Set password'}
-              </button>
+              <div className="settings-form-actions">
+                <button type="submit" className="settings-btn settings-btn-secondary">
+                  {settings.passwordSet ? 'Update password' : 'Set password'}
+                </button>
+                {passwordMsg && (
+                  <span className={`settings-inline-msg is-${passwordMsg.tone}`} role="status">
+                    {passwordMsg.text}
+                  </span>
+                )}
+              </div>
             </form>
 
             <div className="settings-divider" />
@@ -334,39 +330,34 @@ const SettingsView: React.FC = () => {
             <div className="settings-2fa">
               <div className="settings-2fa-head">
                 <div>
-                  <h3 className="settings-subhead">Authenticator app</h3>
+                  <h3 className="settings-subhead">Email authenticator</h3>
                   <p className="settings-muted">
-                    {settings.twoFactorEnabled
-                      ? 'App authenticator is on for this device profile.'
-                      : 'Add an authenticator app for an extra step at sign-in.'}
+                    {settings.email2faEnabled
+                      ? `Codes will be sent to ${settings.email} when you sign in.`
+                      : 'Adds an extra sign-in step by emailing you a one-time code.'}
                   </p>
+                  {authMsg && !show2faSetup && (
+                    <span className={`settings-inline-msg is-${authMsg.tone}`} role="status">
+                      {authMsg.text}
+                    </span>
+                  )}
                 </div>
-                {settings.twoFactorEnabled ? (
+                {settings.email2faEnabled ? (
                   <button type="button" className="settings-btn settings-btn-ghost" onClick={disable2fa}>
                     Disable
                   </button>
                 ) : (
                   !show2faSetup && (
                     <button type="button" className="settings-btn settings-btn-secondary" onClick={start2faSetup}>
-                      Enable 2FA
+                      Enable email 2FA
                     </button>
                   )
                 )}
               </div>
 
-              {show2faSetup && !settings.twoFactorEnabled && (
+              {show2faSetup && !settings.email2faEnabled && (
                 <form className="settings-2fa-setup" onSubmit={confirm2fa}>
-                  <div className="settings-qr" aria-hidden>
-                    <div className="settings-qr-inner">
-                      <span>QR</span>
-                      <small>Authenticator</small>
-                    </div>
-                  </div>
-                  <p className="settings-muted">
-                    Scan with your authenticator app, or enter this secret manually:
-                  </p>
-                  <code className="settings-secret">{pendingSecret}</code>
-                  <label className="settings-field">
+                  <label className="settings-field settings-2fa-code-field">
                     <span>Verification code</span>
                     <input
                       type="text"
@@ -384,8 +375,8 @@ const SettingsView: React.FC = () => {
                       className="settings-btn settings-btn-ghost"
                       onClick={() => {
                         setShow2faSetup(false);
-                        setPendingSecret('');
                         setVerifyCode('');
+                        setAuthMsg(null);
                       }}
                     >
                       Cancel
@@ -394,91 +385,30 @@ const SettingsView: React.FC = () => {
                       Verify & enable
                     </button>
                   </div>
+                  {authMsg && (
+                    <span className={`settings-inline-msg is-${authMsg.tone}`} role="status">
+                      {authMsg.text}
+                    </span>
+                  )}
                 </form>
-              )}
-
-              {settings.twoFactorEnabled && settings.backupCodes.length > 0 && (
-                <div className="settings-backup">
-                  <h3 className="settings-subhead">Backup codes</h3>
-                  <p className="settings-muted">Store these somewhere safe. Each code works once.</p>
-                  <ul className="settings-backup-list">
-                    {settings.backupCodes.map(code => (
-                      <li key={code}>{code}</li>
-                    ))}
-                  </ul>
-                </div>
               )}
             </div>
 
-            <div className="settings-divider" />
+            <div className="settings-divider settings-divider-foot" />
 
-            <div className="settings-2fa">
-              <div className="settings-2fa-head">
-                <div>
-                  <h3 className="settings-subhead">Mobile authenticator</h3>
-                  <p className="settings-muted">
-                    {settings.phone2faEnabled
-                      ? `SMS codes enabled for ${settings.phoneNumber}.`
-                      : 'Add your mobile number for an SMS code at sign-in.'}
-                  </p>
-                </div>
-                {settings.phone2faEnabled ? (
-                  <button type="button" className="settings-btn settings-btn-ghost" onClick={disablePhone2fa}>
-                    Disable
-                  </button>
-                ) : (
-                  !showPhoneSetup && (
-                    <button type="button" className="settings-btn settings-btn-secondary" onClick={startPhoneSetup}>
-                      Enable mobile 2FA
-                    </button>
-                  )
-                )}
+            <div className="settings-about">
+              <div className="settings-about-copy">
+                <h3 className="settings-subhead">App version</h3>
+                <p className="settings-muted">DeBloat v{APP_VERSION}</p>
               </div>
-
-              {showPhoneSetup && !settings.phone2faEnabled && (
-                <form className="settings-2fa-setup" onSubmit={confirmPhone2fa}>
-                  <label className="settings-field">
-                    <span>Mobile number</span>
-                    <input
-                      type="tel"
-                      value={phoneInput}
-                      onChange={e => setPhoneInput(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
-                      autoComplete="tel"
-                    />
-                  </label>
-                  <p className="settings-muted">
-                    Enter the 6-digit code we would send to your phone (demo: any 6 digits).
-                  </p>
-                  <label className="settings-field">
-                    <span>SMS verification code</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="\d{6}"
-                      maxLength={6}
-                      value={phoneCode}
-                      onChange={e => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
-                    />
-                  </label>
-                  <div className="settings-2fa-actions">
-                    <button
-                      type="button"
-                      className="settings-btn settings-btn-ghost"
-                      onClick={() => {
-                        setShowPhoneSetup(false);
-                        setPhoneCode('');
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" className="settings-btn settings-btn-primary">
-                      Verify & enable
-                    </button>
-                  </div>
-                </form>
-              )}
+              <button
+                type="button"
+                className="settings-btn settings-btn-secondary"
+                disabled
+                title="Updates coming soon"
+              >
+                Update
+              </button>
             </div>
           </section>
         </div>
