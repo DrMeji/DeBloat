@@ -4,17 +4,40 @@ import * as path from 'path';
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
-function getTrayImage() {
-  const candidates = [
-    path.join(app.getAppPath(), 'src', 'assets', 'logo.png'),
-    path.join(__dirname, '../src/assets/logo.png'),
-    path.join(__dirname, '../dist/assets/logo.png'),
-  ];
-  for (const p of candidates) {
-    const img = nativeImage.createFromPath(p);
-    if (!img.isEmpty()) return img.resize({ width: 16, height: 16 });
+/**
+ * Finds the app icon by checking for packaged vs. dev environment.
+ * Returns a NativeImage object for use with BrowserWindow and Tray.
+ */
+function getIconImage() {
+  let iconPath: string;
+  // app.isPackaged is the canonical way to check for a packaged app.
+  if (app.isPackaged) {
+    // In production, the icon is copied to `dist/assets`. The `main.js` file
+    // is at `dist/electron/main.js`, so we go up one level and into `assets`.
+    iconPath = path.join(__dirname, '../assets/logo.png');
+  } else {
+    // In development, the icon is in `src/assets`, relative to `main.ts` in `electron`.
+    iconPath = path.join(__dirname, '../src/assets/logo.png');
   }
+
+  try {
+    const img = nativeImage.createFromPath(iconPath);
+    if (!img.isEmpty()) {
+      return img;
+    }
+    console.error(`Icon at path ${iconPath} is empty.`);
+  } catch (err) {
+    console.error(`Could not load icon from path: ${iconPath}`, err);
+  }
+
+  // Fallback if the icon is not found
   return nativeImage.createEmpty();
+}
+
+function getTrayImage() {
+  const icon = getIconImage();
+  // For tray, we need a small, resized icon.
+  return icon.isEmpty() ? icon : icon.resize({ width: 16, height: 16 });
 }
 
 function createTray() {
@@ -58,7 +81,7 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, '../src/assets/logo.png')
+    icon: getIconImage()
   });
 
   if (process.env.VITE_DEV_SERVER_URL) {
