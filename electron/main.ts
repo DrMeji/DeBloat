@@ -1,36 +1,37 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
 /**
- * Finds the app icon by checking for packaged vs. dev environment.
- * Returns a NativeImage object for use with BrowserWindow and Tray.
+ * App icon for the window / tray.
+ * Packaged builds embed build/icon.ico into the .exe (taskbar), and also
+ * ship icon.ico/png under resources for BrowserWindow.
  */
 function getIconImage() {
-  let iconPath: string;
-  // app.isPackaged is the canonical way to check for a packaged app.
-  if (app.isPackaged) {
-    // In production, the icon is copied to `dist/assets`. The `main.js` file
-    // is at `dist/electron/main.js`, so we go up one level and into `assets`.
-    iconPath = path.join(__dirname, '../assets/logo.png');
-  } else {
-    // In development, the icon is in `src/assets`, relative to `main.ts` in `electron`.
-    iconPath = path.join(__dirname, '../src/assets/logo.png');
-  }
+  const candidates = app.isPackaged
+    ? [
+        path.join(process.resourcesPath, 'icon.ico'),
+        path.join(process.resourcesPath, 'icon.png'),
+      ]
+    : [
+        path.join(__dirname, '../build/icon.ico'),
+        path.join(__dirname, '../build/icon.png'),
+      ];
 
-  try {
-    const img = nativeImage.createFromPath(iconPath);
-    if (!img.isEmpty()) {
-      return img;
+  for (const iconPath of candidates) {
+    try {
+      if (!fs.existsSync(iconPath)) continue;
+      const img = nativeImage.createFromPath(iconPath);
+      if (!img.isEmpty()) return img;
+      console.error(`Icon at path ${iconPath} is empty.`);
+    } catch (err) {
+      console.error(`Could not load icon from path: ${iconPath}`, err);
     }
-    console.error(`Icon at path ${iconPath} is empty.`);
-  } catch (err) {
-    console.error(`Could not load icon from path: ${iconPath}`, err);
   }
 
-  // Fallback if the icon is not found
   return nativeImage.createEmpty();
 }
 

@@ -45,7 +45,19 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "icon": "build/icon.ico",
     "win": {
+      "icon": "build/icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
       "signAndEditExecutable": false,
       "target": [
