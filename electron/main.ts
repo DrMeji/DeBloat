@@ -483,7 +483,7 @@ ipcMain.handle('apply-tweaks', async (event, tweaks: TweakPayload[], mode: 'appl
       chunk.split(/\r?\n/).forEach((line) => {
         if (line.trim()) sendLog(event, { type: 'output', id: tweak.id, line });
       });
-    });
+    }, 120000); // 2 min max per tweak — never stall the whole Apply run
 
     if (result.success) {
       successCount += 1;
