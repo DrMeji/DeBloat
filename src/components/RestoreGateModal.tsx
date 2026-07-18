@@ -47,6 +47,15 @@ export const RestoreGateModal: React.FC = () => {
     }
   };
 
+  // TEMP: Skip for VM / testing when System Restore service is disabled — remove later
+  const handleSkip = () => {
+    setRestorePointStatus('skipped');
+    const tweaks = takePendingTweaks();
+    if (tweaks && tweaks.length > 0) {
+      void runTweaks(tweaks);
+    }
+  };
+
   return (
     <div className="restore-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-gate-title">
       <div className="restore-card restore-gate-card">
@@ -67,6 +76,9 @@ export const RestoreGateModal: React.FC = () => {
         <div className="restore-actions">
           <button className="restore-btn-ghost" onClick={closeRestoreGate} disabled={busy}>
             Cancel
+          </button>
+          <button className="restore-btn-ghost" onClick={handleSkip} disabled={busy}>
+            Skip
           </button>
           <button className="restore-btn-primary" onClick={() => void handleCreate()} disabled={busy}>
             {busy ? 'Creating…' : 'Create Restore Point'}

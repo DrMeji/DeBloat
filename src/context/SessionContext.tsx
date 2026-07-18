@@ -106,7 +106,8 @@ export function SessionProvider({
 
   const requestApply = useCallback((tweaks: Tweak[]) => {
     if (tweaks.length === 0) return false;
-    if (restorePointStatus === 'created') return true;
+    // TEMP: allow 'skipped' for VM testing when System Restore is unavailable
+    if (restorePointStatus === 'created' || restorePointStatus === 'skipped') return true;
     setPendingTweaks(tweaks);
     setRestoreGateOpen(true);
     return false;
