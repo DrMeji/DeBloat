@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ultimateTweaks } from '../data/ultimateTweaks';
 import type { Tweak } from '../data/gamerTweaks';
-import { LiveTerminal } from '../components/LiveTerminal';
 import { useTweakRunner } from '../hooks/useTweakRunner';
 import './GamerView.css';
 import './UltimateView.css';
@@ -14,15 +13,7 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
   const [acknowledged, setAcknowledged] = useState(false);
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
-  const {
-    tweakStatuses,
-    isApplying,
-    logLines,
-    terminalOpen,
-    setTerminalOpen,
-    applySummary,
-    runTweaks,
-  } = useTweakRunner();
+  const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
 
   const preferredOrder = ['Apps', 'Security', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks', 'Developer Tools'];
   const categoryOrder = preferredOrder.filter(c => ultimateTweaks.some(t => t.category === c));
@@ -172,7 +163,10 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
               </span>
               {tweakStatuses[tweak.id] && (
                 <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
-                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : tweakStatuses[tweak.id] === 'failed' ? '✗' : '…'}
+                  {tweakStatuses[tweak.id] === 'applied' ? '✓'
+                    : tweakStatuses[tweak.id] === 'failed' ? '✗'
+                    : tweakStatuses[tweak.id] === 'skipped' ? '–'
+                    : '…'}
                 </span>
               )}
               <label className="toggle-switch">
@@ -187,14 +181,6 @@ const UltimateView: React.FC<UltimateViewProps> = ({ onCancel }) => {
           </div>
         ))}
       </div>
-
-      <LiveTerminal
-        open={terminalOpen}
-        onToggle={() => setTerminalOpen(v => !v)}
-        live={isApplying}
-        lines={logLines}
-        summary={applySummary}
-      />
     </div>
   );
 };

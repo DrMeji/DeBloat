@@ -276,7 +276,7 @@ export const developerTweaks: Tweak[] = [
   {
     id: 'dev-enable-wsl',
     name: 'Enable Windows Subsystem for Linux',
-    description: 'Enables the core feature for running Linux distributions on Windows.',
+    description: 'Enables the core feature for running Linux distributions on Windows. Skipped automatically inside VirtualBox/VMware (needs a real PC or nested virtualization).',
     category: 'Developer Tools',
     risk: 'safe',
     recommended: true,
@@ -287,7 +287,7 @@ export const developerTweaks: Tweak[] = [
   {
     id: 'dev-enable-vm-platform',
     name: 'Enable Virtual Machine Platform',
-    description: 'Enables the virtualization platform required for WSL2 and Docker Desktop.',
+    description: 'Enables the virtualization platform required for WSL2 and Docker Desktop. Skipped automatically inside VirtualBox/VMware.',
     category: 'Developer Tools',
     risk: 'safe',
     recommended: true,
@@ -298,7 +298,7 @@ export const developerTweaks: Tweak[] = [
   {
     id: 'dev-enable-hyper-v',
     name: 'Enable Hyper-V',
-    description: 'Enables the full Hyper-V virtualization suite. May conflict with other hypervisors like VirtualBox.',
+    description: 'Enables the full Hyper-V suite. Conflicts with VirtualBox and is skipped inside VMs. Use on a bare-metal Windows Pro/Enterprise PC only.',
     category: 'Developer Tools',
     risk: 'moderate',
     recommended: false,

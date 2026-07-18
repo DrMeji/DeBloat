@@ -320,17 +320,85 @@ function sendLog(event: { sender: { send: (channel: string, payload: unknown) =>
   }
 }
 
+const NESTED_VIRT_MARKERS = [
+  'Microsoft-Windows-Subsystem-Linux',
+  'VirtualMachinePlatform',
+  'Microsoft-Hyper-V',
+];
+
+function isNestedVirtTweak(tweak: TweakPayload): boolean {
+  if (tweak.type !== 'command') return false;
+  return NESTED_VIRT_MARKERS.some(marker => String(tweak.target).includes(marker));
+}
+
+function detectVirtualMachine(): { isVm: boolean; label: string } {
+  try {
+    const { execFileSync } = require('child_process');
+    const out = execFileSync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        "$cs = Get-CimInstance Win32_ComputerSystem; Write-Output ($cs.Manufacturer + '|' + $cs.Model)",
+      ],
+      { encoding: 'utf8', windowsHide: true, timeout: 20000 }
+    ) as string;
+    const lower = out.toLowerCase();
+    const markers = [
+      'virtualbox',
+      'vmware',
+      'virtual machine',
+      'qemu',
+      'xen',
+      'parallels',
+      'innotek',
+      'kvm',
+      'bochs',
+      'microsoft corporation|virtual',
+    ];
+    const isVm = markers.some(m => {
+      if (m.includes('|')) {
+        const [a, b] = m.split('|');
+        return lower.includes(a) && lower.includes(b);
+      }
+      return lower.includes(m);
+    });
+    return { isVm, label: out.trim().replace(/\r?\n/g, ' ') };
+  } catch {
+    return { isVm: false, label: 'unknown' };
+  }
+}
+
 // Apply (or undo) a batch of tweaks, streaming live progress to the renderer.
 ipcMain.handle('apply-tweaks', async (event, tweaks: TweakPayload[], mode: 'apply' | 'undo' = 'apply') => {
-  const results: { id: string; success: boolean; error?: string }[] = [];
+  const results: { id: string; success: boolean; skipped?: boolean; error?: string }[] = [];
   const total = tweaks.length;
   let successCount = 0;
   let failCount = 0;
+  let skipCount = 0;
+
+  const vm = detectVirtualMachine();
+  if (vm.isVm) {
+    sendLog(event, {
+      type: 'output',
+      line: `Virtual machine detected (${vm.label}). WSL / Hyper-V / Virtual Machine Platform will be skipped here.`,
+    });
+  }
 
   for (let i = 0; i < tweaks.length; i++) {
     const tweak = tweaks[i];
     const label = tweak.name || tweak.id;
     sendLog(event, { type: 'start', id: tweak.id, name: label, index: i + 1, total });
+
+    // These features need real hardware (or nested virtualization). Inside VirtualBox
+    // they almost always fail with DISM exit code 1 — skip cleanly instead of FAIL.
+    if (mode === 'apply' && vm.isVm && isNestedVirtTweak(tweak)) {
+      skipCount += 1;
+      const reason = 'Skipped inside a virtual machine (needs bare-metal PC or nested virtualization)';
+      results.push({ id: tweak.id, success: true, skipped: true, error: reason });
+      sendLog(event, { type: 'skip', id: tweak.id, name: label, error: reason });
+      continue;
+    }
 
     const command = buildTweakCommand(tweak, mode);
     if (!command) {
@@ -359,8 +427,8 @@ ipcMain.handle('apply-tweaks', async (event, tweaks: TweakPayload[], mode: 'appl
     results.push({ id: tweak.id, success: result.success, error: result.error });
   }
 
-  sendLog(event, { type: 'done', successCount, failCount, total });
-  return { results, successCount, failCount, total };
+  sendLog(event, { type: 'done', successCount, failCount, skipCount, total });
+  return { results, successCount, failCount, skipCount, total };
 });
 
 // Install a batch of apps via winget, returning a per-app result.

@@ -1,0 +1,138 @@
+.terminal-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 2rem;
+  background: #000;
+  color: #fff;
+}
+
+.terminal-view-header {
+  margin-bottom: 1.25rem;
+}
+
+.terminal-view-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.terminal-view-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a3a3a;
+  flex-shrink: 0;
+}
+
+.terminal-view-pulse.active {
+  background: #3b82f6;
+  animation: terminalHeartbeat 1.4s ease-in-out infinite;
+}
+
+@keyframes terminalHeartbeat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.65);
+  }
+  40% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.terminal-view-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e8e8e8;
+}
+
+.terminal-view-title.is-live {
+  color: #93c5fd;
+  text-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  animation: titlePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.terminal-view-summary {
+  margin-left: auto;
+  color: #8a8a8a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.terminal-view-lead {
+  margin: 0 0 1rem;
+  color: #888;
+  font-size: 0.9rem;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.terminal-view-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.terminal-clear-btn {
+  border: 1px solid #2a2a2a;
+  background: #161616;
+  color: #aaa;
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.terminal-clear-btn:hover:not(:disabled) {
+  color: #fff;
+  border-color: #3a3a3a;
+}
+
+.terminal-clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.terminal-view-body {
+  flex: 1;
+  min-height: 520px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid #1f1f1f;
+  border-radius: 14px;
+  background: #050505;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.terminal-view-empty {
+  color: #555;
+  padding: 2rem 0;
+}
+
+.terminal-view-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.terminal-view-line.kind-ok { color: #4ade80; }
+.terminal-view-line.kind-fail { color: #f87171; }
+.terminal-view-line.kind-cmd { color: #60a5fa; }
+.terminal-view-line.kind-out { color: #a3a3a3; }
+.terminal-view-line.kind-info { color: #d4d4d4; }

@@ -153,6 +153,7 @@
 .tweak-status.applied { color: #4ade80; }
 .tweak-status.failed { color: #f87171; }
 .tweak-status.working { color: #8a8a8a; }
+.tweak-status.skipped { color: #8a8a8a; }
 
 /* Custom Toggle Switch */
 .toggle-switch {

@@ -4,10 +4,12 @@ import { Welcome } from './components/Welcome';
 import { RestorePrompt } from './components/RestorePrompt';
 import { Sidebar } from './components/Sidebar';
 import { WindowControls } from './components/WindowControls';
+import { TerminalProvider } from './context/TerminalContext';
 import GamerView from './views/GamerView';
 import DeveloperView from './views/DeveloperView';
 import UltimateView from './views/UltimateView';
 import AppsView from './views/AppsView';
+import TerminalView from './views/TerminalView';
 
 type Phase = 'welcome' | 'restore' | 'app';
 
@@ -30,34 +32,44 @@ function App() {
         return <UltimateView onCancel={() => setActiveView('gamer')} />;
       case 'apps':
         return <AppsView />;
+      case 'terminal':
+        return <TerminalView />;
       default:
         return <GamerView />;
     }
   };
 
-  const renderPhase = () => {
-    if (phase === 'welcome') {
-      return <Welcome onContinue={() => setPhase('restore')} />;
-    }
-    if (phase === 'restore') {
-      return <RestorePrompt onDone={() => setPhase('app')} />;
-    }
+  if (phase === 'welcome') {
     return (
-      <div className="app">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} onLogout={handleLogout} />
-        <main className="main-content">
-          <div className="view-container">
-            {renderView()}
-          </div>
-        </main>
-      </div>
+      <>
+        <WindowControls />
+        <Welcome onContinue={() => setPhase('restore')} />
+      </>
     );
-  };
+  }
+
+  if (phase === 'restore') {
+    return (
+      <>
+        <WindowControls />
+        <RestorePrompt onDone={() => setPhase('app')} />
+      </>
+    );
+  }
 
   return (
     <>
       <WindowControls />
-      {renderPhase()}
+      <TerminalProvider>
+        <div className="app">
+          <Sidebar activeView={activeView} onViewChange={setActiveView} onLogout={handleLogout} />
+          <main className="main-content">
+            <div className="view-container">
+              {renderView()}
+            </div>
+          </main>
+        </div>
+      </TerminalProvider>
     </>
   );
 }

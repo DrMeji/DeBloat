@@ -1,21 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { gamerTweaks, Tweak } from '../data/gamerTweaks';
-import { LiveTerminal } from '../components/LiveTerminal';
 import { useTweakRunner } from '../hooks/useTweakRunner';
 import './GamerView.css';
 
 const GamerView: React.FC = () => {
   const [selectedTweaks, setSelectedTweaks] = useState<string[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
-  const {
-    tweakStatuses,
-    isApplying,
-    logLines,
-    terminalOpen,
-    setTerminalOpen,
-    applySummary,
-    runTweaks,
-  } = useTweakRunner();
+  const { tweakStatuses, isApplying, runTweaks } = useTweakRunner();
 
   const categoryOrder = ['Apps', 'Services', 'Performance', 'Privacy', 'Scheduled Tasks'];
   const [activeCategory, setActiveCategory] = useState<string>('Apps');
@@ -124,7 +115,10 @@ const GamerView: React.FC = () => {
               </span>
               {tweakStatuses[tweak.id] && (
                 <span className={`tweak-status ${tweakStatuses[tweak.id]}`}>
-                  {tweakStatuses[tweak.id] === 'applied' ? '✓' : tweakStatuses[tweak.id] === 'failed' ? '✗' : '…'}
+                  {tweakStatuses[tweak.id] === 'applied' ? '✓'
+                    : tweakStatuses[tweak.id] === 'failed' ? '✗'
+                    : tweakStatuses[tweak.id] === 'skipped' ? '–'
+                    : '…'}
                 </span>
               )}
               <label className="toggle-switch">
@@ -139,14 +133,6 @@ const GamerView: React.FC = () => {
           </div>
         ))}
       </div>
-
-      <LiveTerminal
-        open={terminalOpen}
-        onToggle={() => setTerminalOpen(v => !v)}
-        live={isApplying}
-        lines={logLines}
-        summary={applySummary}
-      />
     </div>
   );
 };
