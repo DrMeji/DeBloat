@@ -1,0 +1,153 @@
+.restore-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  padding: 2rem;
+}
+
+.restore-card {
+  max-width: 560px;
+  width: 100%;
+  background-color: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  padding: 2.5rem 2.5rem 2rem;
+  text-align: center;
+}
+
+.restore-icon {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  background-color: rgba(229, 72, 77, 0.12);
+  color: #e5484d;
+  border: 1px solid rgba(229, 72, 77, 0.4);
+}
+
+.restore-icon.success {
+  background-color: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.restore-icon.error {
+  background-color: rgba(250, 204, 21, 0.12);
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.4);
+}
+
+.restore-spinner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(229, 72, 77, 0.25);
+  border-top-color: #e5484d;
+  border-radius: 50%;
+  animation: restore-spin 0.8s linear infinite;
+}
+
+@keyframes restore-spin {
+  to { transform: rotate(360deg); }
+}
+
+.restore-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+
+.restore-lead {
+  color: #b5b5b5;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 auto 1rem;
+  max-width: 92%;
+}
+
+.restore-note {
+  color: #7d7d7d;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0 auto 2rem;
+  max-width: 92%;
+}
+
+.restore-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.restore-btn-primary,
+.restore-btn-ghost {
+  border: none;
+  padding: 0.75rem 1.6rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.restore-btn-primary {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.restore-btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.restore-btn-ghost {
+  background-color: #1f1f1f;
+  color: #ccc;
+}
+
+.restore-btn-ghost:hover:not(:disabled) {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.restore-btn-primary:disabled,
+.restore-btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.restore-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  padding: 2rem;
+}
+
+.restore-gate-card {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.restore-gate-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin: 0 auto 1.25rem;
+  max-width: 92%;
+}
+
+.restore-lead strong {
+  color: #e8e8e8;
+  font-weight: 600;
+}

@@ -1,0 +1,368 @@
+.gamer-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  background-color: #000;
+  color: #fff;
+  padding: 0 2rem 1.5rem;
+}
+
+/* Gamer panel owns scrolling; lock the outer view */
+.gamer-view:has(.gamer-panel) {
+  overflow: hidden;
+}
+
+.gamer-topbar {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  background-color: #000;
+  padding-top: 4.25rem;
+  padding-bottom: 1rem;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.gamer-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  width: 100%;
+  -webkit-app-region: no-drag;
+}
+
+/* Shared pill shell */
+.gamer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px;
+  overflow-x: auto;
+}
+
+.gamer-toolbar-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.gamer-toolbar-right {
+  flex-shrink: 0;
+  padding-left: 0.65rem;
+  gap: 0.55rem;
+}
+
+.gamer-toolbar-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: #8a8a8a;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.gamer-toolbar-tab:hover {
+  color: #fff;
+}
+
+.gamer-toolbar-tab.active {
+  background-color: #fff;
+  color: #000;
+}
+
+.gamer-toolbar-tab.preset-recommended.active {
+  background-color: #22c55e;
+  color: #04140a;
+}
+
+.gamer-toolbar-tab.preset-aggressive.active {
+  background-color: #f87171;
+  color: #2a0a0a;
+}
+
+.gamer-toolbar-tab.preset-reset.active {
+  background-color: #525252;
+  color: #fff;
+}
+
+.gamer-toolbar-divider {
+  width: 1px;
+  height: 22px;
+  margin: 0 6px;
+  background: #333;
+  flex-shrink: 0;
+}
+
+.gamer-toolbar-count {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 1.5ch;
+  text-align: center;
+  padding: 0 0.2rem;
+}
+
+.gamer-toolbar-apply {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #3b82f6;
+  color: #fff;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.gamer-toolbar-apply:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.gamer-toolbar-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gamer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Left pill: category tabs */
+.category-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.category-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: #8a8a8a;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-tab:hover {
+  color: #fff;
+}
+
+.category-tab.active {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Preset buttons live inside the right-hand pill */
+.preset-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.preset-tab {
+  background-color: transparent;
+  border: none;
+  color: #8a8a8a;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.preset-tab:hover {
+  color: #fff;
+}
+
+.preset-tab.active {
+  background-color: #fff;
+  color: #000;
+}
+
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #161616;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px 4px 4px 0.5rem;
+}
+
+.selected-count {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 1ch;
+  text-align: center;
+}
+
+.tweaks-container {
+  flex: 1;
+}
+
+/* Big content panel for all Gamer categories */
+.gamer-panel {
+  flex: 1;
+  min-height: 0;
+  background-color: #0d0d0d;
+  border: 1px solid #242424;
+  border-radius: 20px;
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+}
+
+.gamer-panel-scroll {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.35rem 1.35rem 1.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gamer-panel-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+.gamer-panel .tweak-item:last-child {
+  border-bottom: none;
+}
+
+.tweak-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.tweak-info {
+  flex: 1;
+}
+
+.tweak-name {
+  font-weight: 500;
+  color: #fff;
+}
+
+.tweak-description {
+  font-size: 0.875rem;
+  color: #888;
+  margin-top: 0.25rem;
+  max-width: 80%;
+}
+
+.tweak-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.risk-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+  text-transform: capitalize;
+}
+
+.tweak-status {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.tweak-status.applied { color: #4ade80; }
+.tweak-status.failed { color: #f87171; }
+.tweak-status.working { color: #8a8a8a; }
+.tweak-status.skipped { color: #8a8a8a; }
+
+/* Custom Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.apply-btn {
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #3b82f6;
+  color: white;
+}
+
+.apply-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

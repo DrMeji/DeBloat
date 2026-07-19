@@ -1,0 +1,209 @@
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background: #000000;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 80px 20px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: drag;
+}
+
+.sidebar-nav,
+.sidebar-footer,
+.nav-item {
+  -webkit-app-region: no-drag;
+}
+
+.sidebar-logo {
+  height: 75px;
+  width: auto;
+  max-width: 180px;
+  display: block;
+  object-fit: contain;
+}
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 0 20px 90px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: #8a8a8a;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-align: center;
+  width: auto;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  background: transparent;
+  color: #ffffff;
+}
+
+.nav-item.active {
+  background: transparent;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.nav-item-terminal {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.nav-item-terminal:hover,
+.nav-item-terminal.active {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.nav-item-live {
+  color: #3b82f6 !important;
+  font-weight: 700 !important;
+}
+
+.sidebar-nav.is-applying .nav-item-terminal {
+  color: #3b82f6;
+  pointer-events: auto;
+}
+
+/* While Apply/Install is running, dim everything except Terminal + Apps */
+.sidebar-nav.is-applying .nav-item:not(.nav-item-live):not([data-keep-alive]) {
+  color: #2a2a2a;
+  pointer-events: none;
+}
+
+.sidebar-nav.is-applying .nav-item:not(.nav-item-live):not([data-keep-alive]):hover {
+  color: #2a2a2a;
+}
+
+.sidebar-nav.is-applying .nav-item[data-keep-alive]:not(.disabled) {
+  pointer-events: auto;
+  color: #8a8a8a;
+}
+
+.sidebar-nav.is-applying .nav-item[data-keep-alive].active {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.nav-item.disabled {
+  color: #3a3a3a;
+  cursor: not-allowed;
+}
+
+.nav-item.disabled:hover {
+  color: #3a3a3a;
+}
+
+.nav-item-locked {
+  opacity: 0.55;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.nav-item-locked:hover {
+  opacity: 0.85;
+  color: #8a8a8a;
+}
+
+.nav-lock-icon {
+  flex-shrink: 0;
+  color: #666;
+  opacity: 0.9;
+}
+
+.nav-item-locked:hover .nav-lock-icon {
+  color: #8a8a8a;
+}
+
+.sidebar-footer {
+  padding: 24px 20px 36px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-item-logout {
+  color: #e5484d;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 14px;
+}
+
+.nav-item-logout:hover {
+  background: transparent;
+  color: #ff5c60;
+}
+
+/* Portrait / narrow: shrink rail so content isn't clipped */
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .sidebar-header {
+    padding: 56px 12px 36px;
+  }
+
+  .sidebar-logo {
+    height: 56px;
+    max-width: 140px;
+  }
+
+  .sidebar-nav {
+    gap: 22px;
+    padding: 0 12px 70px;
+  }
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    width: 148px;
+  }
+
+  .sidebar-header {
+    padding: 48px 8px 24px;
+  }
+
+  .sidebar-logo {
+    height: 44px;
+    max-width: 110px;
+  }
+
+  .sidebar-nav {
+    gap: 16px;
+    padding: 0 8px 56px;
+  }
+
+  .nav-item {
+    font-size: 0.82rem;
+  }
+}
